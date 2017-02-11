@@ -1,0 +1,22 @@
+{
+  "name": "rest-client",
+  "author": "Thomas Deblock",
+  "version": "0.0.1",
+  "description": "rest client for typescript",
+  "dependencies": {
+    "axios": "^0.15.3"
+  },
+  "devDependencies": {
+    "@types/nock": "^8.2.0",
+    "@types/node": "^7.0.5",
+    "nock": "^9.0.5",
+    "tap-spec": "^4.1.1",
+    "tape": "^4.6.3",
+    "tape-async": "^2.1.1",
+    "xmlhttprequest": "^1.8.0"
+  },
+  "scripts": {
+    "coverage": "istanbul cover dist\\test\\hal-resource.js | node_modules\\.bin\\tap-spec",
+    "test": "node dist\\test\\hal-resource.js | node_modules\\.bin\\tap-spec"
+  }
+}
