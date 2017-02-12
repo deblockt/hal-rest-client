@@ -17,7 +17,7 @@
   },
   "scripts": {
     "coverage": "istanbul cover dist\\test\\hal-resource.js | node_modules\\.bin\\tap-spec",
-    "test": "node dist\\test\\hal-resource.js | node_modules\\.bin\\tap-spec",
+    "test": "node dist/test/hal-resource.js | node_modules/.bin/tap-spec",
     "compile": "tsc"
   }
 }
