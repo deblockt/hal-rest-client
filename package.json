@@ -16,8 +16,9 @@
     "xmlhttprequest": "^1.8.0"
   },
   "scripts": {
-    "coverage": "istanbul cover dist\\test\\hal-resource.js | node_modules\\.bin\\tap-spec",
-    "test": "node dist/test/hal-resource.js | node_modules/.bin/tap-spec",
+    "coverage": "istanbul cover dist/test/hal-resource.js | tap-spec",
+    "test": "node dist/test/hal-resource.js | tap-spec",
+	"coveralls": "cat ./coverage/lcov.info | coveralls",
     "compile": "tsc"
   }
 }

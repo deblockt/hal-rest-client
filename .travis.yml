@@ -3,6 +3,9 @@ node_js:
   - '6'
 before_script:
   - npm install -g typescript
+  - npm install -g istanbul
 script:
   - npm run compile
-  - npm test
+  - npm run coverage
+after_success: 
+  - npm run coveralls
