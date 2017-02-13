@@ -7,7 +7,11 @@ Typescript HAL Rest client
 
 ## Install
 
-TODO
+Using npm :
+
+```
+npm install hal-rest-client
+```
 
 ## how to use
 
