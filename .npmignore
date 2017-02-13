@@ -1,0 +1,7 @@
+node_modules
+coverage
+src
+dist/test
+.travis.yml
+.gitignore
+.npmignore

@@ -1,11 +1,27 @@
 {
-  "name": "rest-client",
+  "name": "hal-rest-client",
   "author": "Thomas Deblock",
   "version": "0.0.1",
-  "description": "rest client for typescript",
+  "description": "Hal rest client for typescript",
+  "tags": [
+    "HAL",
+    "Rest",
+    "Typescript",
+    "Webservice",
+    "HTTP"
+  ],
+  "author": "Thomas Deblock <deblock.thomas.62@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/deblockt/hal-rest-client.git"
+  },
+  "bugs": {
+    "url": "http://github.com/deblockt/hal-rest-client/issues"
+  },
   "dependencies": {
     "axios": "^0.15.3"
   },
+  "main" : "./dist/index",
   "devDependencies": {
     "@types/nock": "^8.2.0",
     "@types/node": "^7.0.5",

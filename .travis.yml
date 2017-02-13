@@ -1,11 +1,19 @@
 language: node_js
 node_js:
-  - '6'
+- '6'
 before_script:
-  - npm install -g typescript
-  - npm install -g istanbul
+- npm install -g typescript
+- npm install -g istanbul
 script:
-  - npm run compile
-  - npm run coverage
-after_success: 
-  - npm run coveralls
+- npm run compile
+- npm run coverage
+after_success:
+- npm run coveralls
+deploy:
+  provider: npm
+  email: deblock.thomas.62@gmail.com
+  api_key:
+    secure: OvgRTuXfHYaD/3Xbgj7PX3DzEbUG9YnIDNvWC9cLEFK4mf/XBEE9pPsuDVaOPkpWLFkxkSl1HIp5XKpP3IytYbjm0fIriCseSdeOb0QfnlK3wxBf1iI0gg4vbd4qvsHPQa4feZl01cIcnzZAEzgxGQ5A/66q+v5sb44kAHuyc8BFjah0IMB87WqEcqcTyIahADXElTxK3sZ9Ek+ji2VhSW4Azg250MAu9o168YL1sSzk5AiSqhoDASgXA6kwOx6ISWueqWfMwpBu+Iz+/FEkRJFQFNPKM/xKs14iy6rVzjLhMNWcKlpl3fZleXfFuf9SvtGf7TmR4RqxvRv++SnYIt6Vc1wsS5KvOTkolTpbXlEvPYVBxMz4G+8FwZiDitMb772SydRkgeNq50XRBFhM56BquUMDAZ5JznR34pSmWdwC90TrKUefCnCelSXqxsMTlJOPYUUxsISMrHGXa8t8Uo5jZUaKlnALXUPTQBE5c7ehbhSQlIDnnP2ZWvqor0koUKhZkbt2egIxynA+RwP8Z0X4tJ3PVCgyPzvuQgqioQvFFmq08zromyIvyZt7No581M0k1ubPy47LJm+TENDmBAxLMo6gLT9eCYEINPA2BQ6uL5uRIk6JXj8wJKL1+41dXGlIaNTTx0FooS8gzf0y1QpgUFXyXjaoPgoKXThaWcQ=
+  on:
+    branch: master
+    repo: deblockt/hal-rest-client

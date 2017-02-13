@@ -10,7 +10,8 @@
       "moduleResolution": "node",
       "sourceMap": true,
       "target": "es5",
-      "outDir":"./dist"
+      "outDir":"./dist",
+      "declaration" : true
     },
     "include": [
         "src/**/*"
