@@ -30,6 +30,12 @@ function initTests() {
   };
 
   var testNock = nock('http://test.fr/');
+  var testNockHeader = nock('http://test.fr/', {
+    reqheaders: {
+        'authorization': 'Basic Auth'
+    }
+  });
+
   testNock
     .get('/projects')
     .reply(200, {
@@ -78,6 +84,10 @@ function initTests() {
   testNock
     .get('/projects/1/subResource')
     .reply(200, subResource);
+
+  testNockHeader
+    .get('/me')
+    .reply(200, {'name' : 'Thomas', '_links' : { 'self' : {'href' : '/me'}}});
 }
 
 initTests();
@@ -153,4 +163,18 @@ initTests();
 test('can use baseUrl to load resources one slash', async (t) => {
   let project2 = await new HalRestClient('http://test.fr').fetch('/projects/1');
   t.equals(project2.prop('name'), 'Project 1');
+});
+
+initTests();
+test('loader with header on constructor', async (t) => {
+  let project2 = await new HalRestClient('http://test.fr/', {'authorization': 'Basic Auth'}).fetch('http://test.fr/me');
+  t.equals(project2.prop('name'), 'Thomas');
+});
+
+initTests();
+test('loader with header with addHeader method', async (t) => {
+  let project2 = await new HalRestClient('http://test.fr/')
+    .addHeader('authorization', 'Basic Auth')
+    .fetch('http://test.fr/me');
+  t.equals(project2.prop('name'), 'Thomas');
 });

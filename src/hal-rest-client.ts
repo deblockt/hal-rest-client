@@ -19,28 +19,30 @@ import { HalResource } from './hal-resource';
  * ```
  */
 export class HalRestClient {
+  private axios;
 
-  constructor(private baseUrl ?: string) {
-  }
-
-  private getUrl(resourceURI: string): string {
-    if (!resourceURI.startsWith('http')) {
-      if (resourceURI.startsWith('/') && this.baseUrl.endsWith('/')) {
-        resourceURI = this.baseUrl + resourceURI.substr(1);
-      } else {
-        resourceURI = this.baseUrl + resourceURI;
-      }
-    }
-    return resourceURI;
+  constructor(private baseUrl ?: string, headers : Object = {}) {
+    this.axios = Axios.create({baseURL : baseUrl, headers : headers});
   }
 
   fetch(resourceURI : string, resource ?: HalResource): Promise<HalResource> {
-    resourceURI = this.getUrl(resourceURI);
     return new Promise((resolve, reject) => {
-      Axios.create().get(resourceURI).then((value) => {
+      this.axios.get(resourceURI).then((value) => {
         resolve(this.jsonToResource(value.data, resource));
       }).catch(reject);
     });
+  }
+
+  /**
+   * add header for each request of ths rest-client
+   * @param name : header name
+   * @param value : header value
+   *
+   * @return this
+   */
+  addHeader(name : string, value : string): HalRestClient {
+    this.axios.defaults.headers.common[name] = value;
+    return this;
   }
 
   private jsonToResource(json : any, resource : HalResource = new HalResource(this)) : any {

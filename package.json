@@ -1,6 +1,7 @@
 {
   "name": "hal-rest-client",
   "author": "Thomas Deblock",
+  "version": "0.0.2",
   "description": "Hal rest client for typescript",
   "tags": [
     "HAL",
