@@ -1,5 +1,6 @@
 import Axios from 'axios';
 import { HalResource } from './hal-resource';
+import { createResource } from './hal-factory';
 
 /**
  * base to rest client
@@ -45,7 +46,7 @@ export class HalRestClient {
     return this;
   }
 
-  private jsonToResource(json : any, resource : HalResource = new HalResource(this)) : any {
+  private jsonToResource(json : any, resource : HalResource = createResource(this)) : any {
     // if there are _links prop object is a resource
     if (Array.isArray(json)) {
       return json.map((item) => this.jsonToResource(item));
@@ -55,7 +56,7 @@ export class HalRestClient {
           var links = json['_links'];
           resource.links =  Object.keys(links)
                               .filter((item) => item != 'self')
-                              .reduce((prev, key) => {prev[key] = new HalResource(this, links[key]['href']); return prev}, {});
+                              .reduce((prev, key) => {prev[key] = createResource(this, links[key]['href']); return prev}, {});
           resource.uri = links['self']['href'];
         } else if ('_embedded' == key) {
           var embedded = json['_embedded'];

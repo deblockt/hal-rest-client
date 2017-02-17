@@ -1,10 +1,12 @@
 import { test } from 'tape-async';
 import { HalRestClient } from '../hal-rest-client';
 import { HalResource } from '../hal-resource';
+import { resetCache } from '../hal-factory';
 import * as nock from 'nock';
 
 // mock list response
 function initTests() {
+  resetCache();
   var project1 = {
     "name" : "Project 1",
     "_links" : {
@@ -90,8 +92,9 @@ function initTests() {
     .reply(200, {'name' : 'Thomas', '_links' : { 'self' : {'href' : '/me'}}});
 }
 
-initTests();
+
 test('fetch contains list', async (t) => {
+  initTests();
   let value = await new HalRestClient().fetch('http://test.fr/projects');
   t.equals(value.uri, 'http://test.fr/projects');
   t.equals(value.prop('projects').length, 2);
@@ -101,15 +104,17 @@ test('fetch contains list', async (t) => {
   t.equals(value.prop('projects')[1].uri, 'http://test.fr/projects/2');
 });
 
-initTests();
+
 test('list item are resources', async (t) => {
+  initTests();
   let value = await new HalRestClient().fetch('http://test.fr/projects');
   let project = value.prop('projects')[0];
   t.equal(typeof project.fetch, 'function');
 });
 
-initTests();
+
 test('resource fetch don\'t reload if already fetched', async (t) => {
+  initTests();
   let value = await new HalRestClient().fetch('http://test.fr/projects');
   let project = value.prop('projects')[0];
   t.equals(project.prop('prop2'), undefined);
@@ -117,8 +122,9 @@ test('resource fetch don\'t reload if already fetched', async (t) => {
   t.equals(project.prop('prop2'), undefined);
 });
 
-initTests();
+
 test('resource fetch can be forced', async (t) => {
+  initTests();
   let value = await new HalRestClient().fetch('http://test.fr/projects');
   let project = value.prop('projects')[0];
   t.equals(project.prop('prop2'), undefined);
@@ -127,16 +133,17 @@ test('resource fetch can be forced', async (t) => {
   t.deepEqual(project.prop('prop2'), {'key' : 'value'});
 });
 
-initTests();
 test('can init Resource by URL', async (t) => {
+  initTests();
   var project = new HalResource(new HalRestClient(), 'http://test.fr/projects/1');
   t.equals(project.prop('name'), undefined);
   await project.fetch();
   t.equals(project.prop('name'), 'Project 1');
 });
 
-initTests();
+
 test('can follow links using link function', async (t) => {
+  initTests();
   let project = await new HalRestClient().fetch('http://test.fr/projects/1');
   let subResource = project.link('subResource');
   t.equals(subResource.prop('prop1'), undefined);
@@ -144,8 +151,9 @@ test('can follow links using link function', async (t) => {
   t.equals(subResource.prop('prop1'), 'value 1');
 });
 
-initTests();
+
 test('can follow links using prop function', async (t) => {
+  initTests();
   let project = await new HalRestClient().fetch('http://test.fr/projects/1');
   let subResource = project.prop('subResource');
   t.equals(subResource.prop('prop1'), undefined);
@@ -153,26 +161,30 @@ test('can follow links using prop function', async (t) => {
   t.equals(subResource.prop('prop1'), 'value 1');
 });
 
-initTests();
+
 test('can use baseUrl to load resources two slash', async (t) => {
+  initTests();
   let project = await new HalRestClient('http://test.fr/').fetch('/projects/1');
   t.equals(project.prop('name'), 'Project 1');
 });
 
-initTests();
+
 test('can use baseUrl to load resources one slash', async (t) => {
+  initTests();
   let project2 = await new HalRestClient('http://test.fr').fetch('/projects/1');
   t.equals(project2.prop('name'), 'Project 1');
 });
 
-initTests();
+
 test('loader with header on constructor', async (t) => {
+  initTests();
   let project2 = await new HalRestClient('http://test.fr/', {'authorization': 'Basic Auth'}).fetch('http://test.fr/me');
   t.equals(project2.prop('name'), 'Thomas');
 });
 
-initTests();
+
 test('loader with header with addHeader method', async (t) => {
+  initTests();
   let project2 = await new HalRestClient('http://test.fr/')
     .addHeader('authorization', 'Basic Auth')
     .fetch('http://test.fr/me');
