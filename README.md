@@ -101,3 +101,12 @@ await client.contactInfos.fetch();
 
 console.log(client.contactInfos.phone) // show ...;
 ```
+
+Function fetchArray can be use for get list of item :
+``` ts
+// ...
+let persons = await client.fetchArray('/persons', Person);
+
+// persons contains list of Person. It's an Array
+console.log(persons[0].name); // show ...
+```

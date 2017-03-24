@@ -30,7 +30,23 @@ export class HalRestClient {
   }
 
   fetchResource(resourceURI : string) : Promise<HalResource> {
-      return this.fetch(resourceURI, HalResource);
+    return this.fetch(resourceURI, HalResource);
+  }
+
+  fetchArray<T extends IHalResource>(resourceURI : string, c : IHalResourceConstructor<T>) : Promise<Array<T>> {
+    // TODO use HalArray instead of this shit
+    return this.fetchResource(resourceURI).then((halResource) => {
+      var array = [];
+      var source = halResource.prop(Object.keys(halResource.props)[0]);
+      for (let item of source) {
+        var resource = createResource(item.uri, c);
+        resource.props = item.props;
+        resource.links = item.links;
+        resource.isLoaded = item.isLoaded;
+        array.push(resource);
+      }
+      return array;
+    });
   }
 
   fetch<T extends IHalResource>(resourceURI : string, c : IHalResourceConstructor<T>,  resource ?: T): Promise<T> {
