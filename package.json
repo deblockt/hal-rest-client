@@ -36,7 +36,7 @@
   "scripts": {
     "coverage": "istanbul cover node_modules/tape/bin/tape dist/test/*.js; remap-istanbul -i coverage/coverage.json -o html-report -t html",
     "test": "tape dist/test/*.js | tap-spec",
-    "coveralls": "remap-istanbul -i coverage/coverage.json -t text-lcov | coveralls",
+    "coveralls": "remap-istanbul -i coverage/coverage.json -t lcovonly | coveralls",
     "compile": "tsc"
   }
 }
