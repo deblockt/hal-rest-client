@@ -35,7 +35,7 @@
   "scripts": {
     "coverage": "istanbul cover dist/test/hal-resource.js | tap-spec",
     "test": "node dist/test/hal-resource.js | tap-spec",
-    "coveralls": "cat ./coverage/lcov.info; cat ./coverage/lcov.info | coveralls",
+    "coveralls": "cat ./coverage/lcov.info | coveralls",
     "compile": "tsc"
   }
 }
