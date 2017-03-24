@@ -1,5 +1,8 @@
 import Axios from 'axios';
+import 'reflect-metadata';
+
 import { HalResource } from './hal-resource';
+import { IHalResource, IHalResourceConstructor} from './hal-resource-interface';
 import { createResource } from './hal-factory';
 
 /**
@@ -26,10 +29,14 @@ export class HalRestClient {
     this.axios = Axios.create({baseURL : baseUrl, headers : headers});
   }
 
-  fetch(resourceURI : string, resource ?: HalResource): Promise<HalResource> {
+  fetchResource(resourceURI : string) : Promise<HalResource> {
+      return this.fetch(resourceURI, HalResource);
+  }
+
+  fetch<T extends IHalResource>(resourceURI : string, c : IHalResourceConstructor<T>,  resource ?: T): Promise<T> {
     return new Promise((resolve, reject) => {
       this.axios.get(resourceURI).then((value) => {
-        resolve(this.jsonToResource(value.data, resource));
+        resolve(this.jsonToResource(value.data, c, resource));
       }).catch(reject);
     });
   }
@@ -46,32 +53,59 @@ export class HalRestClient {
     return this;
   }
 
-  private jsonToResource(json : any, resource : HalResource = createResource(this)) : any {
+  /**
+   * parse a json to object
+   */
+  private parseJson(json, clazz ?: {prototype : any}, key ?: string): any {
     // if there are _links prop object is a resource
     if (Array.isArray(json)) {
-      return json.map((item) => this.jsonToResource(item));
+      var type = Reflect.getMetadata("halClient:specificType", clazz.prototype, key) || HalResource;
+      return json.map((item) => this.jsonToResource(item, type));
     } else if (typeof json == 'object' && json['_links'] != undefined) {
-      for (var key in json) {
-        if ('_links' == key) {
-          var links = json['_links'];
-          resource.links =  Object.keys(links)
-                              .filter((item) => item != 'self')
-                              .reduce((prev, key) => {prev[key] = createResource(this, links[key]['href']); return prev}, {});
-          resource.uri = links['self']['href'];
-        } else if ('_embedded' == key) {
-          var embedded = json['_embedded'];
-          for (var prop in embedded) {
-            resource.props[prop] = this.jsonToResource(embedded[prop]);
-          }
-        } else {
-          resource.props[key] = this.jsonToResource(json[key]);
-        }
-      }
-
-      resource.isLoaded = true;
-      return resource;
+      var type = Reflect.getMetadata("halClient:specificType", clazz.prototype, key) || HalResource;
+      return this.jsonToResource(json, type);
     } else {
       return json;
     }
+  }
+
+
+  /**
+   * convert a json to an halResource
+   */
+  private jsonToResource<T extends IHalResource>(json : any, c: IHalResourceConstructor<T>, resource : T = createResource(this, c)) : T {
+    if (!('_links' in json)) {
+        throw new Error('object is not hal resource');
+    }
+
+    // get transflation between hal-service-name and name on ts class
+    var halToTs = Reflect.getMetadata("halClient:halToTs", c.prototype) || {};
+
+    for (var key in json) {
+      if ('_links' == key) {
+        var links = json['_links'];
+        resource.links =  Object.keys(links)
+                            .filter((item) => item != 'self')
+                            .reduce((prev, key) => {
+                              var type = Reflect.getMetadata("halClient:specificType", c.prototype, key) || HalResource;
+                              var propKey = halToTs[key] || key;
+                              prev[propKey] = createResource(this, type, links[key]['href']);
+                              return prev;
+                            }, {});
+        resource.uri = links['self']['href'];
+      } else if ('_embedded' == key) {
+        var embedded = json['_embedded'];
+        for (var prop in embedded) {
+          var propKey = halToTs[prop] || prop;
+          resource.props[propKey] = this.parseJson(embedded[prop], c, propKey);
+        }
+      } else {
+        var propKey = halToTs[key] || key;
+        resource.props[propKey] = this.parseJson(json[key], c, propKey);
+      }
+    }
+
+    resource.isLoaded = true;
+    return resource;
   }
 }

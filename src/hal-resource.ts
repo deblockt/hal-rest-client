@@ -12,23 +12,23 @@ export class HalResource {
       if (this.isLoaded && !force) {
         return new Promise((resolve) => resolve(this));
       } else {
-        return this.restClient.fetch(this.uri, this);
+        return this.restClient.fetch(this.uri, HalResource, this);
       }
     }
 
     prop(name : string): any {
-        if (this.props[name]) {
-          return this.props[name];
-        } else if (this.links[name]) {
-          return this.link(name);
-        }
+      if (this.props[name]) {
+        return this.props[name];
+      } else if (this.links[name]) {
+        return this.link(name);
+      }
     }
 
     set uri(uri : string) {
       this._uri = uri;
     }
 
-    get uri() {
+    get uri():string {
       return this._uri;
     }
 
