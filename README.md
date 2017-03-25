@@ -26,7 +26,7 @@ You can quickly access the hal-rest-api using the HalResource generic class
 let client = createClient();
 let resource = client.fetchResource('http://foo.bar/resource');
 
-// can access properties with
+// can access properties with, embedded resources are in prop
 // return can be an HalResource or any primitive string depends of rest-service return
 resource.prop('my_prop');
 
@@ -89,17 +89,64 @@ class Person extends HalResource {
 }
 ```
 
+Hal person/1 :
+
+``` json
+{
+  "name" : "Deblock",
+  "_embedded" : {
+      "my-friends" : [
+          {
+              "_links" : { "self" : { "href" : "http://test.fr/person/5" }},
+              "name" : "Laurent"
+          }
+      ],
+      "best-friend" : {
+        "name" : "Laurent",
+        "_links" : {
+          "self" : {
+            "href" : "http://test.fr/person/5"
+          }
+        }
+      }
+  },
+  "_links" : {
+    "self" : {
+      "href" : "http://test.fr/person/1"
+    },
+    "contactInfos" : {
+      "href" : "http://test.fr/person/1/contactInfos"
+    }
+  }
+}
+```
+
+Hal person/1/contactInfos :
+``` json
+{
+  "phone" : "xxxxxxxxxx",
+  "_links" : {
+    "self" : {
+      "href" : "http://test.fr/person/1/contactInfos"
+    },
+  }
+}
+```
+
 After you can fetch Person like this :
 ``` ts
 // ...
 let person = await client.fetch('/person/1', Person);
 
-console.log(person.name); // show ...
+console.log(person.name); // show Deblock
+console.log(person.bestFriend.name); // show Laurent
+console.log(person.friends[0].name); // show Laurent
 
 // fetch contactInfos link
-await client.contactInfos.fetch();
+let contactInfos = await client.contactInfos.fetch();
 
-console.log(client.contactInfos.phone) // show ...;
+console.log(contactInfos.phone) // show xxxxxxxxxx;
+console.log(client.contactInfos.phone) // show xxxxxxxxxx;
 ```
 
 Function fetchArray can be use for get list of item :
@@ -108,5 +155,5 @@ Function fetchArray can be use for get list of item :
 let persons = await client.fetchArray('/persons', Person);
 
 // persons contains list of Person. It's an Array
-console.log(persons[0].name); // show ...
+console.log(persons[0].name); // show Thomas
 ```
