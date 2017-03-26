@@ -1,5 +1,9 @@
-import Axios from 'axios';
-import { HalResource } from './hal-resource';
+import Axios from "axios";
+import "reflect-metadata";
+
+import { createResource } from "./hal-factory";
+import { HalResource } from "./hal-resource";
+import { IHalResource, IHalResourceConstructor} from "./hal-resource-interface";
 
 /**
  * base to rest client
@@ -21,14 +25,34 @@ import { HalResource } from './hal-resource';
 export class HalRestClient {
   private axios;
 
-  constructor(private baseUrl ?: string, headers : Object = {}) {
-    this.axios = Axios.create({baseURL : baseUrl, headers : headers});
+  constructor(private baseURL ?: string, headers: object = {}) {
+    this.axios = Axios.create({baseURL, headers});
   }
 
-  fetch(resourceURI : string, resource ?: HalResource): Promise<HalResource> {
+  public fetchResource(resourceURI: string): Promise<HalResource> {
+    return this.fetch(resourceURI, HalResource);
+  }
+
+  public fetchArray<T extends IHalResource>(resourceURI: string, c: IHalResourceConstructor<T>): Promise<T[]> {
+    // TODO use HalArray instead of this shit
+    return this.fetchResource(resourceURI).then((halResource) => {
+      const array = [];
+      const source = halResource.prop(Object.keys(halResource.props)[0]);
+      for (const item of source) {
+        const resource = createResource(item.uri, c);
+        resource.props = item.props;
+        resource.links = item.links;
+        resource.isLoaded = item.isLoaded;
+        array.push(resource);
+      }
+      return array;
+    });
+  }
+
+  public fetch<T extends IHalResource>(resourceURI: string, c: IHalResourceConstructor<T>,  resource ?: T): Promise<T> {
     return new Promise((resolve, reject) => {
       this.axios.get(resourceURI).then((value) => {
-        resolve(this.jsonToResource(value.data, resource));
+        resolve(this.jsonToResource(value.data, c, resource));
       }).catch(reject);
     });
   }
@@ -40,37 +64,69 @@ export class HalRestClient {
    *
    * @return this
    */
-  addHeader(name : string, value : string): HalRestClient {
+  public addHeader(name: string, value: string): HalRestClient {
     this.axios.defaults.headers.common[name] = value;
     return this;
   }
 
-  private jsonToResource(json : any, resource : HalResource = new HalResource(this)) : any {
+  /**
+   * parse a json to object
+   */
+  private parseJson(json, clazz ?: {prototype: any}, key ?: string): any {
     // if there are _links prop object is a resource
     if (Array.isArray(json)) {
-      return json.map((item) => this.jsonToResource(item));
-    } else if (typeof json == 'object' && json['_links'] != undefined) {
-      for (var key in json) {
-        if ('_links' == key) {
-          var links = json['_links'];
-          resource.links =  Object.keys(links)
-                              .filter((item) => item != 'self')
-                              .reduce((prev, key) => {prev[key] = new HalResource(this, links[key]['href']); return prev}, {});
-          resource.uri = links['self']['href'];
-        } else if ('_embedded' == key) {
-          var embedded = json['_embedded'];
-          for (var prop in embedded) {
-            resource.props[prop] = this.jsonToResource(embedded[prop]);
-          }
-        } else {
-          resource.props[key] = this.jsonToResource(json[key]);
-        }
-      }
-
-      resource.isLoaded = true;
-      return resource;
+      const type = Reflect.getMetadata("halClient:specificType", clazz.prototype, key) || HalResource;
+      return json.map((item) => this.jsonToResource(item, type));
+    } else if (typeof json === "object" && json._links !== undefined) {
+      const type = Reflect.getMetadata("halClient:specificType", clazz.prototype, key) || HalResource;
+      return this.jsonToResource(json, type);
     } else {
       return json;
     }
+  }
+
+  /**
+   * convert a json to an halResource
+   */
+  private jsonToResource<T extends IHalResource>(
+    json: any,
+    c: IHalResourceConstructor<T>,
+    resource: T = createResource(this, c),
+  ): T {
+    if (!("_links" in json)) {
+        throw new Error("object is not hal resource");
+    }
+
+    // get transflation between hal-service-name and name on ts class
+    const halToTs = Reflect.getMetadata("halClient:halToTs", c.prototype) || {};
+
+    for (const key in json) {
+      if ("_links" === key) {
+        const links = json._links;
+        resource.links =  Object.keys(links)
+                            .filter((item) => item !== "self")
+                            .reduce((prev, curentKey) => {
+                              const type =
+                                            Reflect.getMetadata("halClient:specificType", c.prototype, curentKey)
+                                            || HalResource;
+                              const propKey = halToTs[curentKey] || curentKey;
+                              prev[propKey] = createResource(this, type, links[curentKey].href);
+                              return prev;
+                            }, {});
+        resource.uri = links.self.href;
+      } else if ("_embedded" === key) {
+        const embedded = json._embedded;
+        for (const prop of Object.keys(embedded)) {
+          const propKey = halToTs[prop] || prop;
+          resource.props[propKey] = this.parseJson(embedded[prop], c, propKey);
+        }
+      } else {
+        const propKey = halToTs[key] || key;
+        resource.props[propKey] = this.parseJson(json[key], c, propKey);
+      }
+    }
+
+    resource.isLoaded = true;
+    return resource;
   }
 }
