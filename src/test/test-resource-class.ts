@@ -118,6 +118,6 @@ test("bad use of @HalProperty show error", async (t) => {
     }
     t.fail("Bad property must throw error");
   } catch (e) {
-    t.equals(e.message, "Test.test Parameter of @HalProperty is unreadable. read @HalProperty documentation.");
+    t.equals(e.message, "Test.test Parameter of @HalProperty is unreadable. Read @HalProperty documentation.");
   }
 });

@@ -110,9 +110,9 @@ function initTests() {
     .get("/me")
     .reply(200, {
       _links : {
-          name : "Thomas",
           self: { href : "/me" },
       },
+      name : "Thomas",
     });
 
 }

@@ -23,8 +23,8 @@ export function HalProperty<T extends HalResource>(param1 ?: any) {
 
   return (target: any, key: string) => {
     if (error) {
-        throw new Error(`${target.constructor.name}.${key} Parameter of @HalProperty is unreadable.
-                         read @HalProperty documentation.`);
+        throw new Error(`${target.constructor.name}.${key} Parameter of @HalProperty is unreadable.` +
+                         " Read @HalProperty documentation.");
     }
 
     let halToTs = Reflect.getMetadata("halClient:halToTs", target);
