@@ -1,122 +1,99 @@
-import { HalResource } from '../hal-resource';
-import { HalProperty } from '../hal-decorator';
-import { HalArray } from '../hal-array';
+import { HalProperty } from "../hal-decorator";
+import { HalResource } from "../hal-resource";
 
-import { createClient, createResource } from '../hal-factory';
+import { createClient, createResource } from "../hal-factory";
 
-import { test } from 'tape-async';
-import * as nock from 'nock';
+import * as nock from "nock";
+import { test } from "tape-async";
 
-class ContactInfos extends HalResource {
-  @HalProperty()
-  public phone: string;
-}
-
-class Person extends HalResource {
-  @HalProperty()
-  public name;
-
-  @HalProperty({name : 'my-friends', type : Person})
-  public myFriends: Array<Person>;
-
-  @HalProperty({type : Person})
-  public mother: any;
-
-  @HalProperty(Person)
-  public father: any;
-
-  @HalProperty()
-  public contactInfos : ContactInfos;
-
-  @HalProperty("best-friend")
-  public bestFriend: Person;
-}
+import { ContactInfos } from "./model/contact-infos";
+import { Person } from "./model/person";
 
 // mock list response
 function initTests() {
-  var person1 = {
-    "name" : "Project 1",
-    "_embedded" : {
-        "my-friends" : [
-            {
-                "_links" : { "self" : { "href" : "http://test.fr/person/5" }},
-                "name" : "Thomas"
-            }
-        ],
+  const person1 = {
+    _embedded : {
         "best-friend" : {
-          "name" : "My bestfriend",
-          "_links" : {
-            "self" : {
-              "href" : "http://test.fr/person/2"
-            }
-          }
-        },
-        "mother" : {
-          "name" : "My mother",
-          "_links" : {
-            "self" : {
-              "href" : "http://test.fr/person/12"
-            }
-          }
+          _links : {
+            self : {
+              href : "http://test.fr/person/2",
+            },
+          },
+          name : "My bestfriend",
         },
         "father" : {
-          "name" : "My father",
-          "_links" : {
-            "self" : {
-              "href" : "http://test.fr/person/12"
-            }
-          }
-        }
+          _links : {
+            self : {
+              href : "http://test.fr/person/12",
+            },
+          },
+          name : "My father",
+        },
+        "mother" : {
+          _links : {
+            self : {
+              href : "http://test.fr/person/12",
+            },
+          },
+          name : "My mother",
+        },
+        "my-friends" : [
+            {
+                _links : { self : { href : "http://test.fr/person/5" }},
+                name : "Thomas",
+            },
+        ],
     },
-    "_links" : {
-      "self" : {
-        "href" : "http://test.fr/person/1"
+    _links : {
+      contactInfos : {
+        href : "http://test.fr/person/2/contactInfos",
       },
-      "contactInfos" : {
-        "href" : "http://test.fr/person/2/contactInfos"
-      }
-    }
+      self : {
+        href : "http://test.fr/person/1",
+      },
+    },
+    name : "Project 1",
   };
 
-  var contactInfos = {
-    "phone" : "xxxxxxxxxx",
-    "_links" : {
-      "self" : {
-        "href" : "http://test.fr/person/2/contactInfos"
+  const contactInfos = {
+    _links : {
+      self : {
+        href : "http://test.fr/person/2/contactInfos",
       },
-    }
+    },
+    phone : "xxxxxxxxxx",
   };
 
-  var testNock = nock('http://test.fr/');
+  const testNock = nock("http://test.fr/");
 
   testNock
-    .get('/person/1')
+    .get("/person/1")
     .reply(200, person1);
   testNock
-    .get('/person/2/contactInfos')
+    .get("/person/2/contactInfos")
     .reply(200, contactInfos);
   testNock
-    .get('/persons')
+    .get("/persons")
     .reply(200, {
-        "_links" : {"self" : {"href" : "http://test.fr/person"}},
-        "_embedded" : { "persons" : [JSON.parse(JSON.stringify(person1))] }
+        _embedded : { persons : [JSON.parse(JSON.stringify(person1))] },
+        _links : {self : {href : "http://test.fr/person"}},
     });
 }
 
-test('can get single string prop', async function(t) {
+test("can get single string prop", async (t) => {
   initTests();
-  let client = createClient('http://test.fr/');
-  let person = await client.fetch('/person/1', Person);
-  t.equals(person.name, 'Project 1');
-  t.ok(person.bestFriend instanceof Person, 'bestfriend is a person');
-  t.ok(person.mother instanceof Person, 'mother is a person');
-  t.ok(person.father instanceof Person, 'father is a person');
-  t.equals(person.bestFriend.name, 'My bestfriend');
+  const client = createClient("http://test.fr/");
+  const person = await client.fetch("/person/1", Person);
+  t.equals(person.name, "Project 1");
+  t.ok(person.bestFriend instanceof Person, "bestfriend is a person");
+  t.ok(person.mother instanceof Person, "mother is a person");
+  t.ok(person.father instanceof Person, "father is a person");
+  t.equals(person.bestFriend.name, "My bestfriend");
   t.equals(person.contactInfos.phone, undefined);
   await person.contactInfos.fetch();
   t.equals(person.contactInfos.phone, "xxxxxxxxxx");
   t.equals(person.myFriends.length, 1);
-  for (let friend of person.myFriends) {
+  for (const friend of person.myFriends) {
     t.equals(friend.name, "Thomas");
   }
 
@@ -124,22 +101,22 @@ test('can get single string prop', async function(t) {
   t.equals(person.name, "Toto");
 });
 
-test('can fetch Array of Person', async function(t) {
+test("can fetch Array of Person", async (t) => {
   initTests();
-  let client = createClient('http://test.fr/');
-  let persons = await client.fetchArray('/persons', Person);
+  const client = createClient("http://test.fr/");
+  const persons = await client.fetchArray("/persons", Person);
   t.equals(persons.length, 1);
   t.ok(persons[0] instanceof Person, "items is a person");
   t.equals(persons[0].name, "Project 1");
-})
+});
 
-test('bad use of @HalProperty show error', async function(t) {
+test("bad use of @HalProperty show error", async (t) => {
   try {
     class Test extends HalResource {
       @HalProperty({errur : true})
       public test;
     }
-    t.fail('Bad property must throw error');
+    t.fail("Bad property must throw error");
   } catch (e) {
     t.equals(e.message, "Test.test Parameter of @HalProperty is unreadable. read @HalProperty documentation.");
   }

@@ -31,12 +31,15 @@
     "remap-istanbul": "^0.9.1",
     "tap-spec": "^4.1.1",
     "tape": "^4.6.3",
-    "tape-async": "^2.1.1"
+    "tape-async": "^2.1.1",
+    "tslint": "^4.5.1",
+    "typescript": "^2.2.1"
   },
   "scripts": {
     "coverage": "istanbul cover node_modules/tape/bin/tape dist/test/*.js; remap-istanbul -i coverage/coverage.json -o html-report -t html",
     "test": "tape dist/test/*.js | tap-spec",
     "coveralls": "remap-istanbul -i coverage/coverage.json -t lcovonly | coveralls",
-    "compile": "tsc"
+    "compile": "tsc",
+    "lint": "tslint \"src/**/*.ts\" --project tsconfig.json --type-check"
   }
 }

@@ -1,14 +1,15 @@
-import { HalRestClient } from './hal-rest-client';
+import { IHalResource } from "./hal-resource-interface";
+import { HalRestClient } from "./hal-rest-client";
 
-export class HalResource {
-    links : Object = {};
-    props : Object = {};
-    isLoaded : boolean = false;
+export class HalResource implements IHalResource {
+    public links = {};
+    public props = {};
+    public isLoaded = false;
 
-    constructor(private restClient : HalRestClient, protected _uri ?: string) {
+    constructor(private restClient: HalRestClient, protected _uri ?: string) {
     }
 
-    fetch(force : boolean = false): Promise<HalResource> {
+    public fetch(force: boolean = false): Promise<HalResource> {
       if (this.isLoaded && !force) {
         return new Promise((resolve) => resolve(this));
       } else {
@@ -16,7 +17,7 @@ export class HalResource {
       }
     }
 
-    prop(name : string): any {
+    public prop(name: string): any {
       if (this.props[name]) {
         return this.props[name];
       } else if (this.links[name]) {
@@ -24,15 +25,15 @@ export class HalResource {
       }
     }
 
-    set uri(uri : string) {
+    set uri(uri: string) {
       this._uri = uri;
     }
 
-    get uri():string {
+    get uri(): string {
       return this._uri;
     }
 
-    link(name : string): HalResource {
+    public link(name: string): HalResource {
       return this.links[name];
     }
 }

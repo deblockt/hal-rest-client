@@ -1,18 +1,18 @@
-import { HalRestClient } from './hal-rest-client';
+import { HalRestClient } from "./hal-rest-client";
 
 export interface IHalResourceConstructor<T extends IHalResource> {
-    new (restClient : HalRestClient, _uri ?: string): T;
+  new (restClient: HalRestClient, uri ?: string): T;
 }
 
 export interface IHalResource {
-    links : Object;
-    props : Object;
-    isLoaded : boolean; 
-    uri : string; 
-    
-    fetch(force : boolean): Promise<IHalResource>;
+  links: object;
+  props: object;
+  isLoaded: boolean;
+  uri: string;
 
-    prop(name : string): any;
-   
-    link(name : string): IHalResource;
+  fetch(force: boolean): Promise<IHalResource>;
+
+  prop(name: string): any;
+
+  link(name: string): IHalResource;
 }
