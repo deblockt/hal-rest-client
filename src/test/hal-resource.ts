@@ -115,6 +115,19 @@ function initTests() {
       name : "Thomas",
     });
 
+  const project3 = {
+      _links : {
+        self : "http://test.fr/projects/3",
+        subResource : {
+          href : "http://test.fr/projects/3/subResource",
+        },
+        versions : "http://test.fr/projects/3/versions",
+      },
+      name : "Project 3",
+    };
+  testNock
+    .get("/project/3")
+    .reply(200, project3);
 }
 
 test("fetch contains list", async (t) => {
@@ -255,4 +268,12 @@ test("fetch non hal object throw exception", async (t) => {
   } catch (e) {
     t.ok("throwed exception");
   }
+});
+
+test("can read link without href", async (t) => {
+  initTests();
+  const project = await createClient("http://test.fr").fetchResource("/project/3");
+  t.equals(project.uri, "http://test.fr/projects/3");
+  t.equals(project.prop("subResource").uri, "http://test.fr/projects/3/subResource");
+  t.equals(project.link("versions").uri, "http://test.fr/projects/3/versions");
 });

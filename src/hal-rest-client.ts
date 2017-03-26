@@ -105,15 +105,18 @@ export class HalRestClient {
         const links = json._links;
         resource.links =  Object.keys(links)
                             .filter((item) => item !== "self")
-                            .reduce((prev, curentKey) => {
-                              const type =
-                                            Reflect.getMetadata("halClient:specificType", c.prototype, curentKey)
+                            .reduce((prev, currentKey) => {
+                              if ("string" === typeof links[currentKey]) {
+                                links[currentKey] = {href : links[currentKey]};
+                              }
+                              const type =  Reflect.getMetadata("halClient:specificType", c.prototype, currentKey)
                                             || HalResource;
-                              const propKey = halToTs[curentKey] || curentKey;
-                              prev[propKey] = createResource(this, type, links[curentKey].href);
+                              const propKey = halToTs[currentKey] || currentKey;
+                              prev[propKey] = createResource(this, type, links[currentKey].href);
                               return prev;
                             }, {});
-        resource.uri = links.self.href;
+
+        resource.uri = "string" === typeof links.self ? links.self : links.self.href;
       } else if ("_embedded" === key) {
         const embedded = json._embedded;
         for (const prop of Object.keys(embedded)) {
