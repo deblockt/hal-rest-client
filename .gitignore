@@ -1,5 +1,4 @@
 node_modules
-# commented for issue with npm https://github.com/npm/npm/issues/16146
-# dist
+dist
 coverage
 html-report

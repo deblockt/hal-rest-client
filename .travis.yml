@@ -14,3 +14,4 @@ deploy:
   on:
     branch: master
     repo: deblockt/hal-rest-client
+  skip_cleanup: true
