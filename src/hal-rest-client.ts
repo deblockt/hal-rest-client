@@ -85,7 +85,9 @@ export class HalRestClient {
    */
   private parseJson(json, clazz ?: {prototype: any}, key ?: string): any {
     // if there are _links prop object is a resource
-    if (Array.isArray(json)) {
+    if (null === json) {
+      return null;
+    } else if (Array.isArray(json)) {
       const type = Reflect.getMetadata("halClient:specificType", clazz.prototype, key) || HalResource;
       return json.map((item) => this.jsonToResource(item, type));
     } else if (typeof json === "object" && json._links !== undefined) {

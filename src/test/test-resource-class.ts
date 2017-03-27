@@ -81,7 +81,14 @@ function initTests() {
     });
   testNock
     .get("/personsSimpleArray")
-    .reply(200, [JSON.parse(JSON.stringify(person1))]);
+    .reply(200, [JSON.parse(JSON.stringify(person1)), {
+      _links : {
+        self : {
+          href : "http://test.fr/person/12",
+        },
+      },
+      name : null,
+    }]);
 }
 
 test("can get single string prop", async (t) => {
@@ -118,9 +125,10 @@ test("can fetch simple Array of Person", async (t) => {
   initTests();
   const client = createClient("http://test.fr/");
   const persons = await client.fetchArray("/personsSimpleArray", Person);
-  t.equals(persons.length, 1);
+  t.equals(persons.length, 2);
   t.ok(persons[0] instanceof Person, "items is a person");
   t.equals(persons[0].name, "Project 1");
+  t.equals(persons[1].name, undefined);
 });
 
 test("bad use of @HalProperty show error", async (t) => {
