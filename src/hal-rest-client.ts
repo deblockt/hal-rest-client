@@ -35,17 +35,28 @@ export class HalRestClient {
 
   public fetchArray<T extends IHalResource>(resourceURI: string, c: IHalResourceConstructor<T>): Promise<T[]> {
     // TODO use HalArray instead of this shit
-    return this.fetchResource(resourceURI).then((halResource) => {
-      const array = [];
-      const source = halResource.prop(Object.keys(halResource.props)[0]);
-      for (const item of source) {
-        const resource = createResource(item.uri, c);
-        resource.props = item.props;
-        resource.links = item.links;
-        resource.isLoaded = item.isLoaded;
-        array.push(resource);
-      }
-      return array;
+    return new Promise((resolve, reject) => {
+      this.axios.get(resourceURI).then((value) => {
+        if (Array.isArray(value.data)) {
+          const array = [];
+          for (const item of value.data) {
+            array.push(this.jsonToResource(item, c));
+          }
+          resolve(array);
+        } else {
+          const halResource = this.jsonToResource(value.data, c);
+          const array = [];
+          const source = halResource.prop(Object.keys(halResource.props)[0]);
+          for (const item of source) {
+            const resource = createResource(item.uri, c);
+            resource.props = item.props;
+            resource.links = item.links;
+            resource.isLoaded = item.isLoaded;
+            array.push(resource);
+          }
+          resolve(array);
+        }
+      }).catch(reject);
     });
   }
 

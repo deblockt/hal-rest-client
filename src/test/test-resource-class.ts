@@ -1,4 +1,4 @@
-import { createClient, createResource, resetCache, HalResource, HalProperty } from "../index";
+import { createClient, createResource, HalProperty, HalResource, resetCache } from "../";
 
 import * as nock from "nock";
 import { test } from "tape-async";
@@ -79,6 +79,9 @@ function initTests() {
         _embedded : { persons : [JSON.parse(JSON.stringify(person1))] },
         _links : {self : {href : "http://test.fr/person"}},
     });
+  testNock
+    .get("/personsSimpleArray")
+    .reply(200, [JSON.parse(JSON.stringify(person1))]);
 }
 
 test("can get single string prop", async (t) => {
@@ -106,6 +109,15 @@ test("can fetch Array of Person", async (t) => {
   initTests();
   const client = createClient("http://test.fr/");
   const persons = await client.fetchArray("/persons", Person);
+  t.equals(persons.length, 1);
+  t.ok(persons[0] instanceof Person, "items is a person");
+  t.equals(persons[0].name, "Project 1");
+});
+
+test("can fetch simple Array of Person", async (t) => {
+  initTests();
+  const client = createClient("http://test.fr/");
+  const persons = await client.fetchArray("/personsSimpleArray", Person);
   t.equals(persons.length, 1);
   t.ok(persons[0] instanceof Person, "items is a person");
   t.equals(persons[0].name, "Project 1");
