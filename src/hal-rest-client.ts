@@ -91,10 +91,15 @@ export class HalRestClient {
   private jsonToResource<T extends IHalResource>(
     json: any,
     c: IHalResourceConstructor<T>,
-    resource: T = createResource(this, c),
+    resource?: T,
   ): T {
     if (!("_links" in json)) {
         throw new Error("object is not hal resource");
+    }
+
+    if (!resource) {
+      const uri = "string" === typeof json._links.self ? json._links.self : json._links.self.href;
+      resource = createResource(this, c, uri);
     }
 
     // get transflation between hal-service-name and name on ts class

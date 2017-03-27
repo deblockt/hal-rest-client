@@ -1,7 +1,4 @@
-import { HalProperty } from "../hal-decorator";
-import { HalResource } from "../hal-resource";
-
-import { createClient, createResource } from "../hal-factory";
+import { createClient, createResource, resetCache, HalResource, HalProperty } from "../index";
 
 import * as nock from "nock";
 import { test } from "tape-async";
@@ -70,6 +67,10 @@ function initTests() {
     .get("/person/1")
     .reply(200, person1);
   testNock
+      .get("/person/1")
+      .reply(200, person1);
+
+  testNock
     .get("/person/2/contactInfos")
     .reply(200, contactInfos);
   testNock
@@ -120,4 +121,27 @@ test("bad use of @HalProperty show error", async (t) => {
   } catch (e) {
     t.equals(e.message, "Test.test Parameter of @HalProperty is unreadable. Read @HalProperty documentation.");
   }
+});
+
+test("refresh from cache reload from cached object", async (t) => {
+  initTests();
+  const client = createClient("http://test.fr/");
+  const person = await client.fetch("/person/1", Person);
+  t.equals(person.name, "Project 1");
+  person.name = "test";
+  t.equals(person.name, "test");
+  await client.fetch("/person/1", Person);
+  t.equals(person.name, "Project 1");
+});
+
+test("refresh from cache d'ont reaload from cached object after resetCache", async (t) => {
+  initTests();
+  const client = createClient("http://test.fr/");
+  const person = await client.fetch("/person/1", Person);
+  t.equals(person.name, "Project 1");
+  person.name = "test";
+  t.equals(person.name, "test");
+  resetCache();
+  await client.fetch("/person/1", Person);
+  t.equals(person.name, "test");
 });

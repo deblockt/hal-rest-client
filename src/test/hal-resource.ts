@@ -1,9 +1,6 @@
 import { test } from "tape-async";
 
-import { createClient } from "../hal-factory";
-import { resetCache } from "../hal-factory";
-import { HalResource } from "../hal-resource";
-import { HalRestClient } from "../hal-rest-client";
+import { createClient, resetCache, HalResource, HalRestClient } from "../index";
 
 import * as nock from "nock";
 
