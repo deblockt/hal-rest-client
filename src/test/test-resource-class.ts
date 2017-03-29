@@ -4,6 +4,7 @@ import * as nock from "nock";
 import { test } from "tape-async";
 
 import { ContactInfos } from "./model/contact-infos";
+import { Cyclical, CyclicalList } from "./model/cyclical";
 import { Person } from "./model/person";
 
 // mock list response
@@ -89,6 +90,35 @@ function initTests() {
       },
       name : null,
     }]);
+
+  const cyclicals = {
+    _embedded : {
+      cyclicals : [
+        {
+          _links : {
+            self : "http://test.fr/cyclicals/1",
+          },
+          property : "name",
+        },
+      ],
+    },
+    _links: {
+      refresh : "http://test.fr/cyclicals/refresh",
+      self : "http://test.fr/cyclicals",
+    },
+  };
+
+  testNock
+    .get("/cyclicals")
+    .reply(200, cyclicals);
+
+  testNock
+    .get("/cyclicals/refresh")
+    .reply(200, cyclicals);
+
+  testNock
+    .get("/cyclicals/refresh")
+    .reply(200, cyclicals);
 }
 
 test("can get single string prop", async (t) => {
@@ -101,9 +131,11 @@ test("can get single string prop", async (t) => {
   t.ok(person.father instanceof Person, "father is a person");
   t.equals(person.bestFriend.name, "My bestfriend");
   t.equals(person.contactInfos.phone, undefined);
-  await person.contactInfos.fetch();
+  const contactInfos = await person.contactInfos.fetch();
   t.equals(person.contactInfos.phone, "xxxxxxxxxx");
   t.equals(person.myFriends.length, 1);
+  t.ok(contactInfos instanceof ContactInfos);
+  t.equals(contactInfos.phone, "xxxxxxxxxx");
   for (const friend of person.myFriends) {
     t.equals(friend.name, "Thomas");
   }
@@ -143,6 +175,19 @@ test("bad use of @HalProperty show error", async (t) => {
   }
 });
 
+test("@HalProperty must have type for array", async (t) => {
+  try {
+    class Test extends HalResource {
+      @HalProperty()
+      public test: Cyclical[];
+    }
+    t.fail("@HalProperty must have type for array");
+  } catch (e) {
+    t.equals(e.message, "Test.test for Array you need to specify a type on @HalProperty."+
+                        "Example : @HalProperty(HalResource) or  @HalProperty(ClassOfArrayContent)");
+  }
+});
+
 test("refresh from cache reload from cached object", async (t) => {
   initTests();
   const client = createClient("http://test.fr/");
@@ -164,4 +209,24 @@ test("refresh from cache d'ont reaload from cached object after resetCache", asy
   resetCache();
   await client.fetch("/person/1", Person);
   t.equals(person.name, "test");
+});
+
+test("cyclical property have good class type", async (t) => {
+  initTests();
+  const client = createClient("http://test.fr/");
+  let cyclicals = await client.fetch("/cyclicals", CyclicalList);
+  t.ok(cyclicals instanceof CyclicalList, "cyclicals have type CyclicalList");
+  t.ok(cyclicals.refresh instanceof CyclicalList, "cyclicals.refresh have type CyclicalList");
+  t.ok(Array.isArray(cyclicals.cyclicals), "cyclicals is an array");
+  t.equals(cyclicals.cyclicals[0].property, "name");
+  cyclicals = await cyclicals.refresh.fetch();
+  t.ok(cyclicals instanceof CyclicalList, "cyclicals have type CyclicalList");
+  t.ok(cyclicals.refresh instanceof CyclicalList, "cyclicals.refresh have type CyclicalList");
+  t.ok(Array.isArray(cyclicals.cyclicals), "cyclicals is an array");
+  t.equals(cyclicals.cyclicals[0].property, "name");
+  cyclicals = await cyclicals.refresh.fetch();
+  t.ok(cyclicals instanceof CyclicalList, "cyclicals have type CyclicalList");
+  t.ok(cyclicals.refresh instanceof CyclicalList, "cyclicals.refresh have type CyclicalList");
+  t.ok(Array.isArray(cyclicals.cyclicals), "cyclicals is an array");
+  t.equals(cyclicals.cyclicals[0].property, "name");
 });

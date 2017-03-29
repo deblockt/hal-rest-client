@@ -26,6 +26,11 @@ export function HalProperty<T extends HalResource>(param1 ?: any) {
         throw new Error(`${target.constructor.name}.${key} Parameter of @HalProperty is unreadable.` +
                          " Read @HalProperty documentation.");
     }
+    const propertyType = Reflect.getMetadata("design:type", target, key);
+    if (propertyType === Array && type === undefined) {
+      throw new Error(`${target.constructor.name}.${key} for Array you need to specify a type on @HalProperty.` +
+                       "Example : @HalProperty(HalResource) or  @HalProperty(ClassOfArrayContent)");
+    }
 
     let halToTs = Reflect.getMetadata("halClient:halToTs", target);
     if (halToTs === undefined) {
@@ -34,7 +39,7 @@ export function HalProperty<T extends HalResource>(param1 ?: any) {
     }
     halToTs[propName || key] = key;
 
-    const toUseType = type || Reflect.getMetadata("design:type", target, key);
+    const toUseType = type || propertyType;
     Reflect.defineMetadata("halClient:specificType", toUseType, target, key);
 
     // Delete property.

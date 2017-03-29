@@ -1,4 +1,4 @@
-import { IHalResource } from "./hal-resource-interface";
+import { IHalResource, IHalResourceConstructor } from "./hal-resource-interface";
 import { HalRestClient } from "./hal-rest-client";
 
 export class HalResource implements IHalResource {
@@ -9,11 +9,11 @@ export class HalResource implements IHalResource {
     constructor(private restClient: HalRestClient, protected _uri ?: string) {
     }
 
-    public fetch(force: boolean = false): Promise<HalResource> {
+    public fetch(force: boolean = false): Promise<this> {
       if (this.isLoaded && !force) {
         return new Promise((resolve) => resolve(this));
       } else {
-        return this.restClient.fetch(this.uri, HalResource, this);
+        return this.restClient.fetch(this.uri, this.constructor as IHalResourceConstructor<this>, this);
       }
     }
 
