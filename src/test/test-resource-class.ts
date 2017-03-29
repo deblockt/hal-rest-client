@@ -166,12 +166,12 @@ test("can fetch simple Array of Person", async (t) => {
 test("bad use of @HalProperty show error", async (t) => {
   try {
     class Test extends HalResource {
-      @HalProperty({errur : true})
+      @HalProperty(Person, Person)
       public test;
     }
     t.fail("Bad property must throw error");
   } catch (e) {
-    t.equals(e.message, "Test.test Parameter of @HalProperty is unreadable. Read @HalProperty documentation.");
+    t.equals(e.message, "Test.test @HalProperty parameters are 'name' and 'type', not reverse");
   }
 });
 

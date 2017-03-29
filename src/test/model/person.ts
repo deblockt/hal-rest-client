@@ -6,10 +6,10 @@ export class Person extends HalResource {
   @HalProperty()
   public name;
 
-  @HalProperty({name : "my-friends", type : Person})
+  @HalProperty("my-friends", Person)
   public myFriends: Person[];
 
-  @HalProperty({type : Person})
+  @HalProperty(Person)
   public mother: any;
 
   @HalProperty(Person)

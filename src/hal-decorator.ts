@@ -3,28 +3,29 @@ import { HalResource } from "./hal-resource";
 import { IHalResourceConstructor } from "./hal-resource-interface";
 import { HalRestClient } from "./hal-rest-client";
 
-export function HalProperty<T extends HalResource>(param1 ?: any) {
+export function HalProperty<T extends HalResource>(nameOrType ?: string|Function, maybeType ?: Function) {
   let type;
   let propName;
   let error = false;
-
-  if (param1) {
-    if (typeof param1 === "string") {
-      propName = param1;
-    } else if (typeof param1 === "object" && (param1.name || param1.type)) {
-      propName = param1.name;
-      type = param1.type;
-    } else if (typeof param1 === "function") {
-      type = param1;
+  if (nameOrType) {
+    if (typeof nameOrType === "string") {
+      propName = nameOrType;
     } else {
-      error = true;
+      type = nameOrType;
+    }
+
+    if (maybeType) {
+      if (typeof nameOrType === "function") {
+        error = true;
+      } else {
+        type = maybeType;
+      }
     }
   }
 
   return (target: any, key: string) => {
     if (error) {
-        throw new Error(`${target.constructor.name}.${key} Parameter of @HalProperty is unreadable.` +
-                         " Read @HalProperty documentation.");
+        throw new Error(`${target.constructor.name}.${key} @HalProperty parameters are 'name' and 'type', not reverse`);
     }
     const propertyType = Reflect.getMetadata("design:type", target, key);
     if (propertyType === Array && type === undefined) {
