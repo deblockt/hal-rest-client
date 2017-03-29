@@ -63,7 +63,7 @@ class Person extends HalResource {
   @HalProperty()
   public contactInfos : ContactInfos;
 
-  // for array, you need specify content class as parameter
+  // for array, you must specify content class as parameter
   @HalProperty(Person)
   public friends: Array<Person>;
 
@@ -72,7 +72,7 @@ class Person extends HalResource {
   @HalProperty("best-friend")
   public bestFriend: Person;
 
-  @HalProperty({name : 'personnal-address', type : Address})
+  @HalProperty('personnal-address', Address)
   public personnalAddress: List<Address>;
 }
 ```
@@ -156,7 +156,7 @@ console.log(persons[0].name); // show Thomas
 
 Two parameters can be used for creation a client.
 - The base URI. fetchs are done with this base
-- A header. All request are done with this header 
+- A header. All request are done with this header
 
 an base URL can be used on HalRestClient
 
