@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/deblockt/hal-rest-client.svg?branch=master)](https://travis-ci.org/deblockt/hal-rest-client)
 [![Coverage Status](https://coveralls.io/repos/github/deblockt/hal-rest-client/badge.svg)](https://coveralls.io/github/deblockt/hal-rest-client)
+[![NPM](https://nodei.co/npm/hal-rest-client.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/hal-rest-client/)
 
 Typescript HAL Rest client
 
