@@ -9,6 +9,9 @@ import { Person } from "./model/person";
 
 // mock list response
 function initTests() {
+  nock.cleanAll();
+  resetCache();
+
   const person1 = {
     _embedded : {
         "best-friend" : {

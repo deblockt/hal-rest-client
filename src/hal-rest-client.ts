@@ -35,7 +35,7 @@ export class HalRestClient {
   /**
    * fetch an URI on HalResource
    *
-   * @resourceURI : The uri to fetch
+   * @param resourceURI : The uri to fetch
    */
   public fetchResource(resourceURI: string): Promise<HalResource> {
     return this.fetch(resourceURI, HalResource);
@@ -45,8 +45,8 @@ export class HalRestClient {
    * fetch an array by URI. Rest result can be a simple array of hal resouce, or han hal resource who have a
    * property who is array of resource on _embedded.
    *
-   * @resourceURI : the uri of resource to fetch
-   * @c : model class to map result (array items). if you don't write your model, use HalResource class
+   * @param resourceURI : the uri of resource to fetch
+   * @param c : model class to map result (array items). if you don't write your model, use HalResource class
    */
   public fetchArray<T extends IHalResource>(resourceURI: string, c: IHalResourceConstructor<T>): Promise<T[]> {
     return new Promise((resolve, reject) => {
@@ -73,14 +73,50 @@ export class HalRestClient {
   /**
    * call an URI to fetch a resource
    *
-   * @resourceURI : the uri of resource to fetch
-   * @c : the class to use to fetch. If you don't want to write you model, use HalResource or @{see fetchResource}
-   * @resource : don't use. internal only
+   * @param resourceURI : the uri of resource to fetch
+   * @param c : the class to use to fetch. If you don't want to write you model, use HalResource or @{see fetchResource}
+   * @param resource : don't use. internal only
    */
   public fetch<T extends IHalResource>(resourceURI: string, c: IHalResourceConstructor<T>,  resource ?: T): Promise<T> {
     return new Promise((resolve, reject) => {
       this.axios.get(resourceURI).then((value) => {
         resolve(this.jsonPaser.jsonToResource(value.data, c, resource));
+      }).catch(reject);
+    });
+  }
+
+  /**
+   * Delete object support
+   *
+   * according server, return can be :
+   *   - the request
+   *   - an halResource returned by server
+   *   - a json object return by server
+   *
+   * @param resource : The resource to delete
+   */
+  public delete(resource: IHalResource|string): Promise<any> {
+    let uri;
+    let type;
+    if (typeof resource === "string") {
+      uri = resource;
+      type = HalResource;
+    } else {
+      uri = resource.uri;
+      type = resource.constructor;
+    }
+
+    return new Promise((resolve, reject) => {
+      this.axios.delete(uri).then((value) => {
+        if (value.data) {
+          if ("_links" in value.data) {
+            resolve(this.jsonPaser.jsonToResource(value.data, type));
+          } else {
+            resolve(value.data);
+          }
+        } else {
+          resolve(value);
+        }
       }).catch(reject);
     });
   }
@@ -103,4 +139,5 @@ export class HalRestClient {
   public setJsonParser(parser: JSONParser) {
     this.jsonPaser = parser;
   }
+
 }

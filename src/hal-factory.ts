@@ -26,7 +26,8 @@ export function createClient(basename ?: string, headers: object = {}): HalRestC
  * create HalResource for uri
  */
 export function createResource<T extends IHalResource>(
-  client: HalRestClient, c: IHalResourceConstructor<T>,
+  client: HalRestClient,
+  c: IHalResourceConstructor<T>,
   uri?: string,
 ): T {
     if (!uri) {

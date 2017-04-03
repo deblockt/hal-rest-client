@@ -6,6 +6,7 @@ import * as nock from "nock";
 
 // mock list response
 function initTests() {
+  nock.cleanAll();
   resetCache();
   const project1 = {
     _embedded : {

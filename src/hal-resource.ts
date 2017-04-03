@@ -36,4 +36,15 @@ export class HalResource implements IHalResource {
     public link(name: string): HalResource {
       return this.links[name];
     }
+
+    /**
+     * delete the resource
+     * according server, return can be :
+     *   - the request
+     *   - an halResource returned by server
+     *   - a json object return by server
+     */
+    public delete(): Promise<any> {
+      return this.restClient.delete(this);
+    }
 }
