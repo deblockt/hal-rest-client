@@ -30,20 +30,16 @@ export class JSONParser {
     for (const key in json) {
       if ("_links" === key) {
         const links = json._links;
-        resource.links =  Object.keys(links)
-                            .filter((item) => item !== "self")
-                            .reduce((prev, currentKey) => {
-                              if ("string" === typeof links[currentKey]) {
-                                links[currentKey] = {href : links[currentKey]};
-                              }
-                              const type =  Reflect.getMetadata("halClient:specificType", c.prototype, currentKey)
-                                            || HalResource;
-                              const propKey = halToTs[currentKey] || currentKey;
-                              prev[propKey] = createResource(this.halRestClient, type, links[currentKey].href);
-                              return prev;
-                            }, {});
+        for (const linkKey in json._links) {
+          if ("self" !== linkKey) {
+            const href = links[linkKey].href || links[linkKey];
+            const type =  Reflect.getMetadata("halClient:specificType", c.prototype, linkKey) || HalResource;
+            const propKey = halToTs[linkKey] || linkKey;
+            resource.link(propKey, createResource(this.halRestClient, type, href));
+          }
+        }
 
-        resource.uri = "string" === typeof links.self ? links.self : links.self.href;
+        resource.uri = links.self.href || links.self;
       } else if ("_embedded" === key) {
         const embedded = json._embedded;
         for (const prop of Object.keys(embedded)) {

@@ -45,7 +45,7 @@ export class HalResource implements IHalResource {
       return this._uri;
     }
 
-    public link(name: string, value ?: any): HalResource {
+    public link(name: string, value ?: IHalResource): HalResource {
       if (value) {
         this.links[name] = value;
         this.settedLinks.push(name);

@@ -248,7 +248,6 @@ test("can set object property", async (t) => {
   t.equals(person.contactInfos, contactInfos);
 });
 
-
 test("cyclical property have good class type", async (t) => {
   initTests();
   const client = createClient("http://test.fr/");
