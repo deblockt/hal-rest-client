@@ -51,21 +51,21 @@ export class HalRestClient {
   public fetchArray<T extends IHalResource>(resourceURI: string, c: IHalResourceConstructor<T>): Promise<T[]> {
     return new Promise((resolve, reject) => {
       this.axios.get(resourceURI).then((value) => {
-        if (Array.isArray(value.data)) {
-          resolve(value.data.map((item) => this.jsonPaser.jsonToResource(item, c)));
-        } else {
-          const halResource = this.jsonPaser.jsonToResource(value.data, c);
-          const array = [];
-          const source = halResource.prop(Object.keys(halResource.props)[0]);
-          for (const item of source) {
-            const resource = createResource(item.uri, c);
-            resource.props = item.props;
-            resource.links = item.links;
-            resource.isLoaded = item.isLoaded;
-            array.push(resource);
+        let array;
+        if (!Array.isArray(value.data)) {
+          if ("_embedded" in value.data) {
+            const embedded = value.data._embedded;
+            array = embedded[Object.keys(embedded)[0]];
+            if (!Array.isArray(array)) {
+              reject(new Error("property _embedded." + Object.keys(embedded)[0] + " is not an array"));
+            }
+          } else {
+            reject(new Error("unparsable array. it's neither an array nor an halResource"));
           }
-          resolve(array);
+        } else {
+          array = value.data;
         }
+        resolve(array.map((item) => this.jsonPaser.jsonToResource(item, c)));
       }).catch(reject);
     });
   }

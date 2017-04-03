@@ -1,6 +1,6 @@
 import { test } from "tape-async";
 
-import { createClient, HalResource, HalRestClient, resetCache } from "../";
+import { createClient, createResource, HalResource, HalRestClient, resetCache } from "../";
 
 import * as nock from "nock";
 
@@ -274,4 +274,9 @@ test("can read link without href", async (t) => {
   t.equals(project.uri, "http://test.fr/projects/3");
   t.equals(project.prop("subResource").uri, "http://test.fr/projects/3/subResource");
   t.equals(project.link("versions").uri, "http://test.fr/projects/3/versions");
+});
+
+test("can construct hal-object with URI", async (t) => {
+  const resource = createResource(createClient("http://test.fr"), HalResource);
+  t.ok(resource !== undefined);
 });

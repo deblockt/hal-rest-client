@@ -48,11 +48,11 @@ export class JSONParser {
         const embedded = json._embedded;
         for (const prop of Object.keys(embedded)) {
           const propKey = halToTs[prop] || prop;
-          resource.props[propKey] = this.parseJson(embedded[prop], c, propKey);
+          resource.prop(propKey, this.parseJson(embedded[prop], c, propKey));
         }
       } else {
         const propKey = halToTs[key] || key;
-        resource.props[propKey] = this.parseJson(json[key], c, propKey);
+        resource.prop(propKey, this.parseJson(json[key], c, propKey));
       }
     }
 

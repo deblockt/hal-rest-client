@@ -5,6 +5,8 @@ export class HalResource implements IHalResource {
     public links = {};
     public props = {};
     public isLoaded = false;
+    private settedProps = [];
+    private settedLinks = [];
 
     constructor(private restClient: HalRestClient, protected _uri ?: string) {
     }
@@ -17,11 +19,21 @@ export class HalResource implements IHalResource {
       }
     }
 
-    public prop(name: string): any {
-      if (this.props[name]) {
-        return this.props[name];
-      } else if (this.links[name]) {
-        return this.link(name);
+    public prop(name: string, value ?: any): any {
+      if (value) {
+        if (this.links[name]) {
+          this.link(name, value);
+        } else {
+          this.props[name] = value;
+          this.settedProps.push(name);
+        }
+        return this;
+      } else {
+        if (this.props[name]) {
+          return this.props[name];
+        } else if (this.links[name]) {
+          return this.link(name);
+        }
       }
     }
 
@@ -33,8 +45,14 @@ export class HalResource implements IHalResource {
       return this._uri;
     }
 
-    public link(name: string): HalResource {
-      return this.links[name];
+    public link(name: string, value ?: any): HalResource {
+      if (value) {
+        this.links[name] = value;
+        this.settedLinks.push(name);
+        return this;
+      } else {
+        return this.links[name];
+      }
     }
 
     /**

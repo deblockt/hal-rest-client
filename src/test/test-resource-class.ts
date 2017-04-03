@@ -88,7 +88,7 @@ function initTests() {
     .reply(200, [JSON.parse(JSON.stringify(person1)), {
       _links : {
         self : {
-          href : "http://test.fr/person/12",
+          href : "http://test.fr/person/13",
         },
       },
       name : null,
@@ -156,6 +156,28 @@ test("can fetch Array of Person", async (t) => {
   t.equals(persons[0].name, "Project 1");
 });
 
+test("fetch array who is not hal-resource throw exception", async (t) => {
+  initTests();
+  const client = createClient("http://test.fr/");
+  try {
+    await client.fetchArray("/person/1", Person);
+    t.ko("no error throwed");
+  } catch (e) {
+    t.equals(e.message, "property _embedded.best-friend is not an array");
+  }
+});
+
+test("fetch bad hal resource throw exception", async (t) => {
+  initTests();
+  const client = createClient("http://test.fr/");
+  try {
+    await client.fetchArray("/person/2/contactInfos", ContactInfos);
+    t.ko("no error throwed");
+  } catch (e) {
+    t.equals(e.message, "unparsable array. it's neither an array nor an halResource");
+  }
+});
+
 test("can fetch simple Array of Person", async (t) => {
   initTests();
   const client = createClient("http://test.fr/");
@@ -186,7 +208,7 @@ test("@HalProperty must have type for array", async (t) => {
     }
     t.fail("@HalProperty must have type for array");
   } catch (e) {
-    t.equals(e.message, "Test.test for Array you need to specify a type on @HalProperty."+
+    t.equals(e.message, "Test.test for Array you need to specify a type on @HalProperty." +
                         "Example : @HalProperty(HalResource) or  @HalProperty(ClassOfArrayContent)");
   }
 });
@@ -213,6 +235,19 @@ test("refresh from cache d'ont reaload from cached object after resetCache", asy
   await client.fetch("/person/1", Person);
   t.equals(person.name, "test");
 });
+
+test("can set object property", async (t) => {
+  initTests();
+  const client = createClient("http://test.fr/");
+  const person = await client.fetch("/person/1", Person);
+  t.equals(person.name, "Project 1");
+  person.name = "test";
+  t.equals(person.name, "test");
+  const contactInfos = createResource(client, ContactInfos, "/contacInfos/3");
+  person.contactInfos = contactInfos;
+  t.equals(person.contactInfos, contactInfos);
+});
+
 
 test("cyclical property have good class type", async (t) => {
   initTests();

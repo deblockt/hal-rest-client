@@ -3,6 +3,18 @@ import { HalResource } from "./hal-resource";
 import { IHalResourceConstructor } from "./hal-resource-interface";
 import { HalRestClient } from "./hal-rest-client";
 
+/**
+ * get the transco decorator
+ */
+function getTransco(transconame: string, target: any): object {
+  let transco = Reflect.getMetadata("halClient:" + transconame, target);
+  if (transco === undefined) {
+      transco = {};
+      Reflect.defineMetadata("halClient:" + transconame, transco, target);
+  }
+  return transco;
+}
+
 export function HalProperty<T extends HalResource>(nameOrType ?: string|Function, maybeType ?: Function) {
   let type;
   let propName;
@@ -33,12 +45,10 @@ export function HalProperty<T extends HalResource>(nameOrType ?: string|Function
                        "Example : @HalProperty(HalResource) or  @HalProperty(ClassOfArrayContent)");
     }
 
-    let halToTs = Reflect.getMetadata("halClient:halToTs", target);
-    if (halToTs === undefined) {
-        halToTs = {};
-        Reflect.defineMetadata("halClient:halToTs", halToTs, target);
-    }
+    const halToTs = getTransco("halToTs", target);
+    const tsToHal = getTransco("tsToHal", target);
     halToTs[propName || key] = key;
+    tsToHal[key] = propName || key;
 
     const toUseType = type || propertyType;
     Reflect.defineMetadata("halClient:specificType", toUseType, target, key);
@@ -48,7 +58,7 @@ export function HalProperty<T extends HalResource>(nameOrType ?: string|Function
       // Create new property with getter and setter
       Object.defineProperty(target, key, {
         get() { return this.prop(key); },
-        set(value) { this.props[key] = value; },
+        set(value) { this.prop(key, value); },
         configurable: true,
         enumerable: true,
       });
