@@ -2,14 +2,14 @@ import { HalProperty, HalResource } from "../../";
 
 export class Cyclical extends HalResource {
   @HalProperty()
-  property: string;
+  public property: string;
 
 }
 
 export class CyclicalList extends HalResource {
   @HalProperty(Cyclical)
-  cyclicals: Cyclical[];
+  public cyclicals: Cyclical[];
 
   @HalProperty()
-  refresh: CyclicalList;
+  public refresh: CyclicalList;
 }

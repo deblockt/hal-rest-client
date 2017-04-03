@@ -2,6 +2,7 @@ import Axios from "axios";
 import "reflect-metadata";
 
 import { createResource } from "./hal-factory";
+import { JSONParser } from "./hal-json-parser";
 import { HalResource } from "./hal-resource";
 import { IHalResource, IHalResourceConstructor} from "./hal-resource-interface";
 
@@ -24,27 +25,36 @@ import { IHalResource, IHalResourceConstructor} from "./hal-resource-interface";
  */
 export class HalRestClient {
   private axios;
+  private jsonPaser;
 
   constructor(private baseURL ?: string, headers: object = {}) {
     this.axios = Axios.create({baseURL, headers});
+    this.setJsonParser(new JSONParser(this));
   }
 
+  /**
+   * fetch an URI on HalResource
+   *
+   * @resourceURI : The uri to fetch
+   */
   public fetchResource(resourceURI: string): Promise<HalResource> {
     return this.fetch(resourceURI, HalResource);
   }
 
+  /**
+   * fetch an array by URI. Rest result can be a simple array of hal resouce, or han hal resource who have a
+   * property who is array of resource on _embedded.
+   *
+   * @resourceURI : the uri of resource to fetch
+   * @c : model class to map result (array items). if you don't write your model, use HalResource class
+   */
   public fetchArray<T extends IHalResource>(resourceURI: string, c: IHalResourceConstructor<T>): Promise<T[]> {
-    // TODO use HalArray instead of this shit
     return new Promise((resolve, reject) => {
       this.axios.get(resourceURI).then((value) => {
         if (Array.isArray(value.data)) {
-          const array = [];
-          for (const item of value.data) {
-            array.push(this.jsonToResource(item, c));
-          }
-          resolve(array);
+          resolve(value.data.map((item) => this.jsonPaser.jsonToResource(item, c)));
         } else {
-          const halResource = this.jsonToResource(value.data, c);
+          const halResource = this.jsonPaser.jsonToResource(value.data, c);
           const array = [];
           const source = halResource.prop(Object.keys(halResource.props)[0]);
           for (const item of source) {
@@ -60,10 +70,17 @@ export class HalRestClient {
     });
   }
 
+  /**
+   * call an URI to fetch a resource
+   *
+   * @resourceURI : the uri of resource to fetch
+   * @c : the class to use to fetch. If you don't want to write you model, use HalResource or @{see fetchResource}
+   * @resource : don't use. internal only
+   */
   public fetch<T extends IHalResource>(resourceURI: string, c: IHalResourceConstructor<T>,  resource ?: T): Promise<T> {
     return new Promise((resolve, reject) => {
       this.axios.get(resourceURI).then((value) => {
-        resolve(this.jsonToResource(value.data, c, resource));
+        resolve(this.jsonPaser.jsonToResource(value.data, c, resource));
       }).catch(reject);
     });
   }
@@ -81,73 +98,9 @@ export class HalRestClient {
   }
 
   /**
-   * parse a json to object
+   * set the json parser
    */
-  private parseJson(json, clazz ?: {prototype: any}, key ?: string): any {
-    // if there are _links prop object is a resource
-    if (null === json) {
-      return null;
-    } else if (Array.isArray(json)) {
-      const type = Reflect.getMetadata("halClient:specificType", clazz.prototype, key) || HalResource;
-      return json.map((item) => this.jsonToResource(item, type));
-    } else if (typeof json === "object" && json._links !== undefined) {
-      const type = Reflect.getMetadata("halClient:specificType", clazz.prototype, key) || HalResource;
-      return this.jsonToResource(json, type);
-    } else {
-      return json;
-    }
-  }
-
-  /**
-   * convert a json to an halResource
-   */
-  private jsonToResource<T extends IHalResource>(
-    json: any,
-    c: IHalResourceConstructor<T>,
-    resource?: T,
-  ): T {
-    if (!("_links" in json)) {
-        throw new Error("object is not hal resource");
-    }
-
-    if (!resource) {
-      const uri = "string" === typeof json._links.self ? json._links.self : json._links.self.href;
-      resource = createResource(this, c, uri);
-    }
-
-    // get transflation between hal-service-name and name on ts class
-    const halToTs = Reflect.getMetadata("halClient:halToTs", c.prototype) || {};
-
-    for (const key in json) {
-      if ("_links" === key) {
-        const links = json._links;
-        resource.links =  Object.keys(links)
-                            .filter((item) => item !== "self")
-                            .reduce((prev, currentKey) => {
-                              if ("string" === typeof links[currentKey]) {
-                                links[currentKey] = {href : links[currentKey]};
-                              }
-                              const type =  Reflect.getMetadata("halClient:specificType", c.prototype, currentKey)
-                                            || HalResource;
-                              const propKey = halToTs[currentKey] || currentKey;
-                              prev[propKey] = createResource(this, type, links[currentKey].href);
-                              return prev;
-                            }, {});
-
-        resource.uri = "string" === typeof links.self ? links.self : links.self.href;
-      } else if ("_embedded" === key) {
-        const embedded = json._embedded;
-        for (const prop of Object.keys(embedded)) {
-          const propKey = halToTs[prop] || prop;
-          resource.props[propKey] = this.parseJson(embedded[prop], c, propKey);
-        }
-      } else {
-        const propKey = halToTs[key] || key;
-        resource.props[propKey] = this.parseJson(json[key], c, propKey);
-      }
-    }
-
-    resource.isLoaded = true;
-    return resource;
+  public setJsonParser(parser: JSONParser) {
+    this.jsonPaser = parser;
   }
 }

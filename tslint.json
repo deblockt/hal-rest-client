@@ -2,7 +2,8 @@
   "extends": "tslint:latest",
   "rules": {
     "curly": true,
-    "variable-name" : "never"
+    "variable-name" : "never",
+    "max-classes-per-file": [true, 3]
   },
   "jsRules": {
     "curly": true
