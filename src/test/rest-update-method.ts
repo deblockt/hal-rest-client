@@ -200,3 +200,61 @@ test("can update with custom serializer", async (t) => {
 
   scope.done();
 });
+
+test("can update and get resource updated", async (t) => {
+  initTests();
+  const client = createClient("http://test.fr");
+
+  const resource = await client.fetchResource("/person/1");
+  resource.prop("name", "test");
+  resource.prop("project", await client.fetchResource("/project/5"));
+
+  const scope = nock(basePath)
+    .intercept("/person/1", "PATCH", {name: "test", project : "http://test.fr/project/5"})
+    .reply(200, {name : "test", _links : { self : { url : "http://test.fr/person/1"}}});
+
+  try {
+    const result = await resource.update();
+    t.equals(result.prop("name"), "test");
+  } catch (e) {
+    t.fail(e.message);
+  }
+
+  scope.done();
+});
+
+test("can call update with hal-client", async (t) => {
+  initTests();
+  const client = createClient("http://test.fr");
+
+  const scope = nock(basePath)
+    .intercept("/person/1", "PATCH", {name: "test"})
+    .reply(200, {name : "test", _links : { self : { url : "http://test.fr/person/1"}}});
+
+  try {
+    const result = await client.update("http://test.fr/person/1", {name : "test"});
+    t.equals(result.prop("name"), "test");
+  } catch (e) {
+    t.fail(e.message);
+  }
+
+  scope.done();
+});
+
+test("can call put update with hal-client", async (t) => {
+  initTests();
+  const client = createClient("http://test.fr");
+
+  const scope = nock(basePath)
+    .intercept("/person/1", "PUT", {name: "test"})
+    .reply(200, {name : "test", _links : { self : { url : "http://test.fr/person/1"}}});
+
+  try {
+    const result = await client.update("http://test.fr/person/1", {name : "test"}, true);
+    t.equals(result.prop("name"), "test");
+  } catch (e) {
+    t.fail(e.message);
+  }
+
+  scope.done();
+});

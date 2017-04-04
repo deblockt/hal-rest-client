@@ -120,13 +120,33 @@ export class HalRestClient {
    * @param url : resource url to update
    * @param json : request body send
    * @param full : true or false. true send put, false send patch. Default patch
+   * @param type: if hal service return entity, type can be used to map return to an entity model
    */
-  public update(url: string, data: object, full: boolean = false): Promise<any> {
+  public update(
+    url: string,
+    data: object,
+    full: boolean = false,
+    type: IHalResourceConstructor<any> = HalResource,
+  ): Promise<any> {
     const method = full ? "put" : "patch";
 
     return new Promise((resolve, reject) => {
       this.axios.request({data, method, url}).then((value) => {
-        this.resolveUnknowTypeReturn(resolve, value);
+        this.resolveUnknowTypeReturn(resolve, value, type);
+      }).catch(reject);
+    });
+  }
+
+  /**
+   * run post request
+   * @param uri : resource uri to update
+   * @param json : request body send
+   * @param type: if hal service return entity, type can be used to map return to an entity model
+   */
+  public save(uri: string, json: object, type: IHalResourceConstructor<any> = HalResource): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.axios.post(uri, json).then((value) => {
+        this.resolveUnknowTypeReturn(resolve, value, type);
       }).catch(reject);
     });
   }

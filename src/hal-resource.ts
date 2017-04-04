@@ -86,12 +86,35 @@ export class HalResource implements IHalResource {
      *
      * @param serializer : object used to serialize the prop and link value
      */
-    public update(serializer: IJSONSerializer = new DefaultSerializer()): Promise<any> {
-      const json = {};
-      const tsToHal = Reflect.getMetadata("halClient:tsToHal", this.constructor.prototype) || {};
+    public update(serializer ?: IJSONSerializer): Promise<any> {
+      const json = this.serialize(this.settedProps, this.settedLinks, serializer);
+      return this.restClient.update(this.uri, json, false, this.constructor as IHalResourceConstructor<this>);
+    }
 
-      for (const prop of this.settedProps) {
-        const jsonKey = tsToHal[prop] || prop;
+    /**
+     * save the resource
+     */
+    public save(serializer ?: IJSONSerializer): Promise<any> {
+      const json = this.serialize(Object.keys(this.props), Object.keys(this.links), serializer);
+      return this.restClient.save(this.uri, json, this.constructor as IHalResourceConstructor<this>);
+    }
+
+    /**
+     * get the service prop name corresponding to ts attribute name
+     */
+    protected tsProptoHalProd(prop: string) {
+      const tsToHal = Reflect.getMetadata("halClient:tsToHal", this.constructor.prototype) || {};
+      return tsToHal[prop] || prop;
+    }
+
+    /**
+     * serialize this object to json
+     */
+    private serialize(props: string[], links: string[], serializer: IJSONSerializer = new DefaultSerializer()): object {
+      const json = {};
+
+      for (const prop of props) {
+        const jsonKey = this.tsProptoHalProd(prop) ;
         if (this.props[prop] !== undefined && this.props[prop] !== null && this.props[prop].onInitEnded !== undefined) {
           json[jsonKey] = serializer.parseResource(this.props[prop]);
         } else {
@@ -99,11 +122,11 @@ export class HalResource implements IHalResource {
         }
       }
 
-      for (const link of this.settedLinks) {
-        const jsonKey = tsToHal[link] || link;
+      for (const link of links) {
+        const jsonKey = this.tsProptoHalProd(link);
         json[jsonKey] = serializer.parseResource(this.links[link]);
       }
 
-      return this.restClient.update(this.uri, json);
+      return json;
     }
 }
