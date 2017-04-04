@@ -13,11 +13,20 @@ export interface IHalResource {
   /**
    * get or set a prop or a link.
    * if name is a link. link function is used
+   * @param name : the prop/link name
+   * @param value : the value to set. Use null to clear value not undefined
    */
   prop(name: string, value ?: any): any;
 
   /**
-   * get or set a link
+   * get or set a link.
+   * @param name : the link name
+   * @param value : the new resource. If you want reset a link use null and not undefined
    */
   link(name: string, value ?: IHalResource): IHalResource;
+
+  /**
+   * function called when object is populated
+   */
+  onInitEnded();
 }

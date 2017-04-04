@@ -53,6 +53,8 @@ export class JSONParser {
     }
 
     resource.isLoaded = true;
+    resource.onInitEnded();
+
     return resource;
   }
 

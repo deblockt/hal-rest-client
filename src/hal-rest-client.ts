@@ -1,4 +1,6 @@
 import Axios from "axios";
+import { AxiosResponse } from "axios";
+
 import "reflect-metadata";
 
 import { createResource } from "./hal-factory";
@@ -108,15 +110,23 @@ export class HalRestClient {
 
     return new Promise((resolve, reject) => {
       this.axios.delete(uri).then((value) => {
-        if (value.data) {
-          if ("_links" in value.data) {
-            resolve(this.jsonPaser.jsonToResource(value.data, type));
-          } else {
-            resolve(value.data);
-          }
-        } else {
-          resolve(value);
-        }
+        this.resolveUnknowTypeReturn(resolve, value, type);
+      }).catch(reject);
+    });
+  }
+
+  /**
+   * run put or patch request
+   * @param url : resource url to update
+   * @param json : request body send
+   * @param full : true or false. true send put, false send patch. Default patch
+   */
+  public update(url: string, data: object, full: boolean = false): Promise<any> {
+    const method = full ? "put" : "patch";
+
+    return new Promise((resolve, reject) => {
+      this.axios.request({data, method, url}).then((value) => {
+        this.resolveUnknowTypeReturn(resolve, value);
       }).catch(reject);
     });
   }
@@ -140,4 +150,25 @@ export class HalRestClient {
     this.jsonPaser = parser;
   }
 
+  /**
+   * resolve a service return (delete/patch/put/post)
+   *
+   * @param resolve : callback function
+   * @param value : the returned value
+   */
+  private resolveUnknowTypeReturn(
+    resolve: (data?) => void,
+    value: AxiosResponse,
+    type ?: IHalResourceConstructor<any>,
+  ) {
+    if (value.data) {
+      if ("_links" in value.data) {
+        resolve(this.jsonPaser.jsonToResource(value.data, type));
+      } else {
+        resolve(value.data);
+      }
+    } else {
+      resolve(value);
+    }
+  }
 }

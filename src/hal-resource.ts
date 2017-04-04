@@ -1,3 +1,4 @@
+import { DefaultSerializer, IJSONSerializer } from "./hal-json-serializer";
 import { IHalResource, IHalResourceConstructor } from "./hal-resource-interface";
 import { HalRestClient } from "./hal-rest-client";
 
@@ -7,6 +8,7 @@ export class HalResource implements IHalResource {
     public isLoaded = false;
     private settedProps = [];
     private settedLinks = [];
+    private initEnded = false;
 
     constructor(private restClient: HalRestClient, protected _uri ?: string) {
     }
@@ -19,13 +21,18 @@ export class HalResource implements IHalResource {
       }
     }
 
+    /**
+     * to clear value use null not undefined
+     */
     public prop(name: string, value ?: any): any {
-      if (value) {
+      if (value !== void 0) {
         if (this.links[name]) {
           this.link(name, value);
         } else {
           this.props[name] = value;
-          this.settedProps.push(name);
+          if (this.initEnded) {
+            this.settedProps.push(name);
+          }
         }
         return this;
       } else {
@@ -44,11 +51,15 @@ export class HalResource implements IHalResource {
     get uri(): string {
       return this._uri;
     }
-
+    /**
+     * to clear value use null not undefined
+     */
     public link(name: string, value ?: IHalResource): HalResource {
-      if (value) {
+      if (value !== void 0) {
         this.links[name] = value;
-        this.settedLinks.push(name);
+        if (this.initEnded) {
+          this.settedLinks.push(name);
+        }
         return this;
       } else {
         return this.links[name];
@@ -64,5 +75,35 @@ export class HalResource implements IHalResource {
      */
     public delete(): Promise<any> {
       return this.restClient.delete(this);
+    }
+
+    public onInitEnded() {
+      this.initEnded = true;
+    }
+
+    /**
+     * update the resource
+     *
+     * @param serializer : object used to serialize the prop and link value
+     */
+    public update(serializer: IJSONSerializer = new DefaultSerializer()): Promise<any> {
+      const json = {};
+      const tsToHal = Reflect.getMetadata("halClient:tsToHal", this.constructor.prototype) || {};
+
+      for (const prop of this.settedProps) {
+        const jsonKey = tsToHal[prop] || prop;
+        if (this.props[prop] !== undefined && this.props[prop] !== null && this.props[prop].onInitEnded !== undefined) {
+          json[jsonKey] = serializer.parseResource(this.props[prop]);
+        } else {
+          json[jsonKey] = serializer.parseProp(this.props[prop]);
+        }
+      }
+
+      for (const link of this.settedLinks) {
+        const jsonKey = tsToHal[link] || link;
+        json[jsonKey] = serializer.parseResource(this.links[link]);
+      }
+
+      return this.restClient.update(this.uri, json);
     }
 }
