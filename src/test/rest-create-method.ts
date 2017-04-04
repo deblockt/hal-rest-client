@@ -83,7 +83,7 @@ function initTests() {
     .reply(200, project5);
 }
 
-test("can save person using rest-client", async (t) => {
+test("can create person using rest-client", async (t) => {
   initTests();
   const client = createClient();
 
@@ -92,7 +92,7 @@ test("can save person using rest-client", async (t) => {
     .reply(200, {name : "Thomas", _links: { self : { url : "http://test.fr/persons/2" } } });
 
   try {
-    const resource = await client.save("http://test.fr/persons", { name: "ThoMas" });
+    const resource = await client.create("http://test.fr/persons", { name: "ThoMas" });
     t.equals(resource.prop("name"), "Thomas");
   } catch (e) {
     t.fail(e.message);
@@ -100,7 +100,7 @@ test("can save person using rest-client", async (t) => {
   scope.done();
 });
 
-test("can save person using HalResource", async (t) => {
+test("can create person using HalResource", async (t) => {
   initTests();
   const client = createClient();
 
@@ -112,7 +112,7 @@ test("can save person using HalResource", async (t) => {
     .reply(200, {name : "Thomas", _links: { self : { url : "http://test.fr/persons/2" } } });
 
   try {
-    resource = await resource.save();
+    resource = await resource.create();
     t.equals(resource.prop("name"), "Thomas");
   } catch (e) {
     t.fail(e.message);

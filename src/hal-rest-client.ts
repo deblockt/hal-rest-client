@@ -143,7 +143,7 @@ export class HalRestClient {
    * @param json : request body send
    * @param type: if hal service return entity, type can be used to map return to an entity model
    */
-  public save(uri: string, json: object, type: IHalResourceConstructor<any> = HalResource): Promise<any> {
+  public create(uri: string, json: object, type: IHalResourceConstructor<any> = HalResource): Promise<any> {
     return new Promise((resolve, reject) => {
       this.axios.post(uri, json).then((value) => {
         this.resolveUnknowTypeReturn(resolve, value, type);
