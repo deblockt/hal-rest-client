@@ -185,7 +185,7 @@ test("can fetch simple Array of Person", async (t) => {
   t.equals(persons.length, 2);
   t.ok(persons[0] instanceof Person, "items is a person");
   t.equals(persons[0].name, "Project 1");
-  t.equals(persons[1].name, undefined);
+  t.equals(persons[1].name, null);
 });
 
 test("bad use of @HalProperty show error", async (t) => {
