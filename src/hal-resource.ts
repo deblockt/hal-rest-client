@@ -36,7 +36,7 @@ export class HalResource implements IHalResource {
         }
         return this;
       } else {
-        if (this.props[name]) {
+        if (this.props[name] !== undefined) {
           return this.props[name];
         } else if (this.links[name]) {
           return this.link(name);

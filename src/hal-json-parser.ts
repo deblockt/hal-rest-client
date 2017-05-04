@@ -16,7 +16,7 @@ export class JSONParser {
     resource?: T,
   ): T {
     if (!("_links" in json)) {
-        throw new Error("object is not hal resource");
+        throw new Error("object is not hal resource " + JSON.stringify(json));
     }
 
     if (!resource) {
@@ -67,7 +67,7 @@ export class JSONParser {
       return null;
     } else if (Array.isArray(json)) {
       const type = Reflect.getMetadata("halClient:specificType", clazz.prototype, key) || HalResource;
-      return json.map((item) => this.jsonToResource(item, type));
+      return json.map((item) => this.parseJson(item, clazz, key));
     } else if (typeof json === "object" && json._links !== undefined) {
       const type = Reflect.getMetadata("halClient:specificType", clazz.prototype, key) || HalResource;
       return this.jsonToResource(json, type);
