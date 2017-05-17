@@ -1,6 +1,7 @@
 import { HalResource } from "./hal-resource";
 import { IHalResource, IHalResourceConstructor} from "./hal-resource-interface";
 import { HalRestClient } from "./hal-rest-client";
+import { AxiosRequestConfig } from "axios";
 
 let clients: {[k: string]: HalRestClient} = {};
 let resources: {[k: string]: any} = {};
@@ -10,13 +11,13 @@ let resources: {[k: string]: any} = {};
  * if a client with same base already exists, same client is returned
  *
  */
-export function createClient(basename ?: string, headers: object = {}): HalRestClient {
+export function createClient(basename ?: string, options: AxiosRequestConfig = {}): HalRestClient {
     if (!basename) {
         return new HalRestClient();
     }
 
     if (!(basename in clients)) {
-        clients[basename] = new HalRestClient(basename, headers);
+        clients[basename] = new HalRestClient(basename, options);
     }
 
     return clients[basename];

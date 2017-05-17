@@ -239,6 +239,50 @@ const createdResource = await resource.create();
 ```
 > if your server return new created object, create return this object. createdResource have type Resource. create don't populate the existing object.
 
+## Configuration
+
+### request configuration
+You can configure some parameter on you client.
+HalClient use axios to run ajax request.
+
+You can configure each parameter describe [here](https://github.com/mzabriskie/axios#request-config)
+
+To do, you have two solution:
+
+```typescript
+// example to configure CORS withCredentials parameter
+createClient('http://test.fr', {withCredentials : true})
+
+// or
+client.config.withCredentials = true
+```
+
+### interceptor
+
+You can configure interceptors, you have two interceptor types :
+- request interceptor : configure request information
+- response interceptor: do something with server response. This interceptor is called before object parsing to HalResource
+
+```typescript
+// Add a request interceptor
+halClient.interceptors.request.use(function (config) {
+    // Do something before request is sent
+    return config;
+  }, function (error) {
+    // Do something with request error
+    return Promise.reject(error);
+});
+
+// Add a response interceptor
+halClient.interceptors.response.use(function (response) {
+    // Do something with response data
+    return response;
+  }, function (error) {
+    // Do something with response error
+    return Promise.reject(error);
+});
+```
+
 ## API description
 
 ### Client creation
@@ -256,7 +300,7 @@ const client = await createClient('http://foo.bar');
 
 header can be set to HalRestClient
 ``` ts
-const client = await createClient('http://foo.bar', {'authorization': 'Basic Auth'});
+const client = await createClient('http://foo.bar', {'headers' : {'authorization': 'Basic Auth'}});
 // or
 const client = createClient('http://foo.bar');
 client.addHeader('authorization', 'Basic Auth');
