@@ -1,5 +1,5 @@
 import Axios from "axios";
-import { AxiosResponse } from "axios";
+import { AxiosResponse, AxiosInstance, AxiosRequestConfig, AxiosInterceptorManager } from "axios";
 
 import "reflect-metadata";
 
@@ -26,11 +26,13 @@ import { IHalResource, IHalResourceConstructor} from "./hal-resource-interface";
  * ```
  */
 export class HalRestClient {
-  private axios;
+  private axios: AxiosInstance;
   private jsonPaser;
 
-  constructor(private baseURL ?: string, headers: object = {}) {
-    this.axios = Axios.create({baseURL, headers});
+  constructor(private baseURL ?: string, options: AxiosRequestConfig = {}) {
+    const config = options;
+    config.baseURL = baseURL;
+    this.axios = Axios.create(config);
     this.setJsonParser(new JSONParser(this));
   }
 
@@ -139,9 +141,9 @@ export class HalRestClient {
 
   /**
    * run post request
-   * @param uri : resource uri to update
-   * @param json : request body send
-   * @param type: if hal service return entity, type can be used to map return to an entity model
+   * @param uri {string} resource uri to update
+   * @param json {object} request body send
+   * @param type {IHalResourceConstructor} if hal service return entity, type can be used to map return to an entity model
    */
   public create(uri: string, json: object, type: IHalResourceConstructor<any> = HalResource): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -152,19 +154,37 @@ export class HalRestClient {
   }
 
   /**
-   * add header for each request of ths rest-client
-   * @param name : header name
-   * @param value : header value
+   * add header configuration
+   * @param header {string} the header name
+   * @param value {string} the header value
    *
-   * @return this
+   * @return {HalRestClient} thiss
    */
-  public addHeader(name: string, value: string): HalRestClient {
-    this.axios.defaults.headers.common[name] = value;
+  public addHeader(header: string, value: string): HalRestClient {
+    this.config.headers.common[header] = value;
     return this;
   }
 
   /**
+   * Get axios config for customization
+   *
+   * @return {AxiosRequestConfig}
+   */
+  public get config() {
+    return this.axios.defaults;
+  }
+
+  /**
+   * get axions config interceptor
+   * @return {AxiosInterceptorManager}
+   */
+  public get interceptors() {
+    return this.axios.interceptors;
+  }
+
+  /**
    * set the json parser
+   * @param {JSONParser} the new json parser
    */
   public setJsonParser(parser: JSONParser) {
     this.jsonPaser = parser;

@@ -244,17 +244,36 @@ test("can use baseUrl to load resources one slash", async (t) => {
 
 test("loader with header on constructor", async (t) => {
   initTests();
-  const client = createClient("http://test.fr/", {authorization : "Basic Auth"});
+  const client = createClient("http://test.fr/", {headers : {authorization : "Basic Auth"}});
   const project2 = await client.fetch("http://test.fr/me", HalResource);
+  t.equals(project2.prop("name"), "Thomas");
+});
+
+test("loader with header with config method", async (t) => {
+  initTests();
+  const client = createClient("http://test.fr/");
+  client.config.headers.common["authorization"] = "Basic Auth";
+  const project2 = await client.fetchResource("http://test.fr/me");
   t.equals(project2.prop("name"), "Thomas");
 });
 
 test("loader with header with addHeader method", async (t) => {
   initTests();
   const project2 = await createClient("http://test.fr/")
-    .addHeader("authorization", "Basic Auth")
-    .fetchResource("http://test.fr/me");
+                .addHeader("authorization", "Basic Auth")
+                .fetchResource("http://test.fr/me");
   t.equals(project2.prop("name"), "Thomas");
+});
+
+test("interceptor is used", async (t) => {
+  initTests();
+  const client = await createClient("http://test.fr/");
+  client.interceptors.request.use(function (config) {
+    config.url += '/1';
+    return config;
+  });
+  const resource = await client.fetchResource('/projects');
+  t.equals(resource.prop("name"), "Project 1");
 });
 
 test("fetch non hal object throw exception", async (t) => {
