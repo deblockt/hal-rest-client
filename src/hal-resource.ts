@@ -10,7 +10,7 @@ export class HalResource implements IHalResource {
     private settedLinks = [];
     private initEnded = false;
 
-    constructor(private restClient: HalRestClient, protected _uri ?: string) {
+    constructor(protected restClient: HalRestClient, protected _uri ?: string) {
     }
 
     public fetch(force: boolean = false): Promise<this> {
