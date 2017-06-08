@@ -252,7 +252,7 @@ test("loader with header on constructor", async (t) => {
 test("loader with header with config method", async (t) => {
   initTests();
   const client = createClient("http://test.fr/");
-  client.config.headers.common["authorization"] = "Basic Auth";
+  client.config.headers.common.authorization = "Basic Auth";
   const project2 = await client.fetchResource("http://test.fr/me");
   t.equals(project2.prop("name"), "Thomas");
 });
@@ -268,11 +268,11 @@ test("loader with header with addHeader method", async (t) => {
 test("interceptor is used", async (t) => {
   initTests();
   const client = await createClient("http://test.fr/");
-  client.interceptors.request.use(function (config) {
-    config.url += '/1';
+  client.interceptors.request.use((config) => {
+    config.url += "/1";
     return config;
   });
-  const resource = await client.fetchResource('/projects');
+  const resource = await client.fetchResource("/projects");
   t.equals(resource.prop("name"), "Project 1");
 });
 

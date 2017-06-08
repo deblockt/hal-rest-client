@@ -1,7 +1,7 @@
+import { AxiosRequestConfig } from "axios";
 import { HalResource } from "./hal-resource";
 import { IHalResource, IHalResourceConstructor} from "./hal-resource-interface";
 import { HalRestClient } from "./hal-rest-client";
-import { AxiosRequestConfig } from "axios";
 
 let clients: {[k: string]: HalRestClient} = {};
 let resources: {[k: string]: any} = {};
@@ -39,7 +39,11 @@ export function createResource<T extends IHalResource>(
         resources[uri] = new c(client, uri);
     }
 
-    return resources[uri];
+    const resource = resources[uri];
+    if (resource instanceof c) {
+      return resource;
+    }
+    return new c(resource);
 }
 
 /**

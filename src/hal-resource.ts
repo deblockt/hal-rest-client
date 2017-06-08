@@ -3,14 +3,28 @@ import { IHalResource, IHalResourceConstructor } from "./hal-resource-interface"
 import { HalRestClient } from "./hal-rest-client";
 
 export class HalResource implements IHalResource {
-    public links = {};
-    public props = {};
+    public readonly links = {};
+    public readonly props = {};
     public isLoaded = false;
-    private settedProps = [];
-    private settedLinks = [];
+
+    private readonly settedProps = [];
+    private readonly settedLinks = [];
     private initEnded = false;
 
-    constructor(protected restClient: HalRestClient, protected _uri ?: string) {
+
+    private restClient: HalRestClient;
+
+    constructor(restClient: HalRestClient|HalResource, protected _uri ?: string) {
+      if (restClient instanceof HalRestClient) {
+        this.restClient = restClient;
+      } else {
+        this.restClient = restClient.restClient;
+        this.links = restClient.links;
+        this.props = restClient.props;
+        this.settedLinks = restClient.settedLinks;
+        this.settedProps = restClient.settedProps;
+        this._uri = restClient._uri;
+      }
     }
 
     public fetch(force: boolean = false): Promise<this> {

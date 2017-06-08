@@ -29,28 +29,28 @@ function initTests() {
   resetCache();
 
   const json = {
-  	_links: {
-  		self: {
-  			href: "http://test.fr/notificationConfig",
-  			type: "application/hal+json"
-  		},
-  		updateNotificationConfigs: {
-  			href: "http://test.fr/notificationConfig/update",
-  			type: "application/hal+json"
-  		}
-  	},
-  	cellphoneSet: false,
-  	notificationConfigs: [
-  		{
-  			notificationDescription: "Your password has been reset",
-  			category: "Login",
-  			subcategory: "Reset_Password",
-  			email: {
-  				id: 3,
-  				enabled: true
-  			}
-  		}
-  	]
+    _links: {
+      self: {
+        href: "http://test.fr/notificationConfig",
+        type: "application/hal+json",
+      },
+      updateNotificationConfigs: {
+        href: "http://test.fr/notificationConfig/update",
+        type: "application/hal+json",
+      },
+    },
+    cellphoneSet: false,
+    notificationConfigs: [
+      {
+        category: "Login",
+        email: {
+          enabled: true,
+          id: 3,
+        },
+        notificationDescription: "Your password has been reset",
+        subcategory: "Reset_Password",
+      },
+    ],
   };
 
   const testNock = nock("http://test.fr/");
@@ -62,7 +62,7 @@ function initTests() {
 
 test("can fetch array of non hal resource", async (t) => {
   initTests();
-  const fetched = await createClient('http://test.fr/').fetch('/notificationConfigs', HalNotification);
+  const fetched = await createClient("http://test.fr/").fetch("/notificationConfigs", HalNotification);
   t.equals(fetched.cellphoneSet, false);
   t.equals(fetched.notificationConfigs.length, 1);
   t.equals(fetched.notificationConfigs[0].subcategory, "Reset_Password");

@@ -1,7 +1,7 @@
 {
   "name": "hal-rest-client",
   "author": "Thomas Deblock <deblock.thomas.62@gmail.com>",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Hal rest client for typescript",
   "tags": [
     "HAL",
@@ -38,7 +38,7 @@
   },
   "scripts": {
     "coverage": "istanbul cover node_modules/tape/bin/tape dist/test/*.js; remap-istanbul -i coverage/coverage.json -o html-report -t html",
-    "test": "tape dist/test/*.js | tap-spec",
+    "test": "tsc && tape dist/test/*.js | tap-spec",
     "coveralls": "remap-istanbul -i coverage/coverage.json -t lcovonly | coveralls",
     "compile": "tsc",
     "lint": "tslint \"src/**/*.ts\" --project tsconfig.json --type-check"
