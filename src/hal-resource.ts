@@ -12,7 +12,7 @@ export class HalResource implements IHalResource {
     private initEnded = false;
 
 
-    private restClient: HalRestClient;
+    protected restClient: HalRestClient;
 
     constructor(restClient: HalRestClient|HalResource, protected _uri ?: string) {
       if (restClient instanceof HalRestClient) {
