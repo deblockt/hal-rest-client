@@ -7,12 +7,11 @@ export class HalResource implements IHalResource {
     public readonly props = {};
     public isLoaded = false;
 
+    protected restClient: HalRestClient;
+
     private readonly settedProps = [];
     private readonly settedLinks = [];
     private initEnded = false;
-
-
-    protected restClient: HalRestClient;
 
     constructor(restClient: HalRestClient|HalResource, protected _uri ?: string) {
       if (restClient instanceof HalRestClient) {
@@ -28,7 +27,7 @@ export class HalResource implements IHalResource {
     }
 
     public fetch(force: boolean = false): Promise<this> {
-      if (this.isLoaded && !force) {
+      if ((this.isLoaded && !force) || this.uri === undefined) {
         return new Promise((resolve) => resolve(this));
       } else {
         return this.restClient.fetch(this.uri, this.constructor as IHalResourceConstructor<this>, this);

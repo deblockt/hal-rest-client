@@ -20,11 +20,14 @@ export class JSONParser {
     }
 
     if (!resource) {
-      const uri = "string" === typeof json._links.self ? json._links.self : json._links.self.href;
+      let uri;
+      if (json._links.self) {
+        uri = "string" === typeof json._links.self ? json._links.self : json._links.self.href;
+      }
       resource = createResource(this.halRestClient, c, uri);
     }
 
-    // get transflation between hal-service-name and name on ts class
+    // get translation between hal-service-name and name on ts class
     const halToTs = Reflect.getMetadata("halClient:halToTs", c.prototype) || {};
 
     for (const key in json) {
@@ -38,8 +41,9 @@ export class JSONParser {
             resource.link(propKey, createResource(this.halRestClient, type, href));
           }
         }
-
-        resource.uri = links.self.href || links.self;
+        if (links.self) {
+          resource.uri = links.self.href || links.self;
+        }
       } else if ("_embedded" === key) {
         const embedded = json._embedded;
         for (const prop of Object.keys(embedded)) {

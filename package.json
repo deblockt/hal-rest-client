@@ -1,7 +1,7 @@
 {
   "name": "hal-rest-client",
   "author": "Thomas Deblock <deblock.thomas.62@gmail.com>",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Hal rest client for typescript",
   "tags": [
     "HAL",
@@ -22,7 +22,7 @@
     "reflect-metadata": "^0.1.9"
   },
   "main": "dist/index",
-  "typings" : "dist/index",
+  "typings": "dist/index",
   "devDependencies": {
     "@types/nock": "^8.2.0",
     "@types/node": "^7.0.5",
