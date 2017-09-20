@@ -106,7 +106,7 @@ export class HalRestClient {
       uri = resource;
       type = HalResource;
     } else {
-      uri = resource.uri.realURI;
+      uri = resource.uri.fetchedURI;
       type = resource.constructor;
     }
 

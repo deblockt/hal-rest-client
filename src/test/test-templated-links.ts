@@ -101,7 +101,7 @@ test("can fetch resource with self templated link", async (t) => {
   const resource = await client.fetchResource("/data?page=1");
 
   t.equals(resource.uri.uri, "http://test.fr/data{?page,size,sort}");
-  t.equals(resource.uri.realURI, "http://test.fr/data?page=1");
+  t.equals(resource.uri.fetchedURI, "http://test.fr/data?page=1");
   t.equals(resource.prop("data").length, 1);
 });
 
@@ -113,11 +113,11 @@ test("can fetch link using parameters", async (t) => {
     const findLink = resource.link("find");
 
     t.equals(findLink.uri.templated, true);
-    t.equals(findLink.uri.realURI, "");
+    t.equals(findLink.uri.fetchedURI, "");
     const findedResource = await findLink.fetch({q: "test"});
 
     t.equals(findedResource.prop("data")[0].prop("name"), "test");
-    t.equals(findedResource.uri.realURI, "http://test.fr/data?q=test");
+    t.equals(findedResource.uri.fetchedURI, "http://test.fr/data?q=test");
 });
 
 test("can fetch with parameter clean templated URI", async (t) => {
@@ -130,7 +130,7 @@ test("can fetch with parameter clean templated URI", async (t) => {
   const findedResource = await findLink.fetch();
 
   t.equals(findedResource.prop("test"), "emptyData");
-  t.equals(findedResource.uri.realURI, "http://test.fr/data");
+  t.equals(findedResource.uri.fetchedURI, "http://test.fr/data");
 });
 
 test("can use path parameter", async (t) => {

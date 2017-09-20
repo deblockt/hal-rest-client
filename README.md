@@ -19,6 +19,15 @@ Using npm :
 npm install hal-rest-client
 ```
 
+### From O.2
+
+Warning : `uri` property of HalResource are now `URI` type. Si if you use this property you must now use 
+```ts
+halResource.uri.fetchedURI // get the uri used to fetch resource
+halResource.uri.uri // get the uri provided from server
+halResource.uri.fill({params: "test"}) // fill the templated uri with given parameters
+```
+
 ## how to use
 
 The library provide two access method :
