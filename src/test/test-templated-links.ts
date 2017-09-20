@@ -21,11 +21,11 @@ function initTests() {
     },
     _links: {
       find: {
-        href: "data{?q}",
+        href: "/data{?q}",
         templated: true,
       },
       findById: {
-        href: "data{/id}",
+        href: "/data{/id}",
         templated: true,
       },
       self: {
@@ -62,6 +62,15 @@ function initTests() {
     test: "demo",
   };
 
+  const dataWithoutParameters = {
+    _links: {
+      self: {
+        href: "http://test.fr/data",
+      },
+    },
+    test: "emptyData",
+  };
+
   const testNock = nock("http://test.fr/");
 
   testNock
@@ -71,6 +80,10 @@ function initTests() {
   testNock
     .get("/data/demo")
     .reply(200, byIdResult);
+
+  testNock
+    .get("/data")
+    .reply(200, dataWithoutParameters);
 
   testNock
     .delete("/data?page=1")
@@ -105,6 +118,19 @@ test("can fetch link using parameters", async (t) => {
 
     t.equals(findedResource.prop("data")[0].prop("name"), "test");
     t.equals(findedResource.uri.realURI, "http://test.fr/data?q=test");
+});
+
+test("can fetch with parameter clean templated URI", async (t) => {
+  initTests();
+  const client = createClient("http://test.fr/");
+
+  const resource = await client.fetchResource("/data?page=1");
+  const findLink = resource.link("find");
+
+  const findedResource = await findLink.fetch();
+
+  t.equals(findedResource.prop("test"), "emptyData");
+  t.equals(findedResource.uri.realURI, "http://test.fr/data");
 });
 
 test("can use path parameter", async (t) => {

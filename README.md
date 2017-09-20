@@ -71,6 +71,23 @@ const name = linkValue.prop("name");
 ```
 > link return an empty `HalResource`, just `uri` is setted. `fetch` populate the HalResource.
 
+#### Follow a templated link
+
+If you link is templated, you can set parameter to fetch to compute fetch URL.
+```ts
+// link "link_name" is a templated link like this 
+// /bookings{?projection}
+const linkValue = resource.link("link_name");
+const bookings = await linkValue.fetch(); // fetch /bookings
+const bookingsWithName = await linkValue.fetch({projection : "name"}); // fetch /bookings?projection=name
+// link "link_infos" is like this 
+// /infos{/path*}
+const linkValue = resource.link("link_infos");
+const infos = await linkValue.fetch(); // fetch /infos
+const infosForFoo = await linkValue.fetch({path: "foo"});
+```
+
+
 #### Update a resource
 
 Resource can be updated, an save with a PATCH query.
