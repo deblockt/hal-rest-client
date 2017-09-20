@@ -67,17 +67,17 @@ test("delete read halResource json response", async (t) => {
   const result = await client.delete(resource);
 
   t.equals(result.prop("phone"), "xxxxxxxxxx");
-  t.equals(result.uri, "http://test.fr/person/2/contactInfos");
+  t.equals(result.uri.uri, "http://test.fr/person/2/contactInfos");
 });
 
 test("delete read model class json response", async (t) => {
   initTests();
   const client = createClient();
-
+  
   const resource = createResource(client, ContactInfos, "http://test.fr/person/2/contactInfos");
   const result = await resource.delete();
 
   t.ok(result instanceof ContactInfos, "result is a ContactInfos");
   t.equals(result.phone, "xxxxxxxxxx");
-  t.equals(result.uri, "http://test.fr/person/2/contactInfos");
+  t.equals(result.uri.uri, "http://test.fr/person/2/contactInfos");
 });

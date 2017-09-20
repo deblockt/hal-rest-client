@@ -1,6 +1,7 @@
 import { test } from "tape-async";
 
 import { createClient, createResource, HalResource, HalRestClient, resetCache } from "../";
+import { URI } from "../uri";
 
 import * as nock from "nock";
 
@@ -131,45 +132,13 @@ function initTests() {
 test("fetch contains list", async (t) => {
   initTests();
   const value = await createClient().fetch("http://test.fr/projects", HalResource);
-  t.equals(value.uri, "http://test.fr/projects");
+  t.equals(value.uri.fill(), "http://test.fr/projects");
   t.equals(value.prop("projects").length, 2);
   t.equals(value.prop("projects")[0].prop("name"), "Project 1");
-  t.equals(value.prop("projects")[0].uri, "http://test.fr/projects/1");
+  t.equals(value.prop("projects")[0].uri.fill(), "http://test.fr/projects/1");
   t.equals(value.prop("projects")[1].prop("name"), "Project 2");
-  t.equals(value.prop("projects")[1].uri, "http://test.fr/projects/2");
+  t.equals(value.prop("projects")[1].uri.fill(), "http://test.fr/projects/2");
 });
-/*
-test("fetch into halArray list", async (t) => {
-  initTests();
-  let value = await new HalRestClient().fetch("http://test.fr/projects", HalArray);
-  console.log(value);
-  t.equals(value.uri, "http://test.fr/projects");
-  t.equals(value.prop("projects").length, 2);
-  t.equals(value.prop("projects")[0].prop("name"), "Project 1");
-  t.equals(value.prop("projects")[0].uri, "http://test.fr/projects/1");
-  t.equals(value.prop("projects")[1].prop("name"), "Project 2");
-  t.equals(value.prop("projects")[1].uri, "http://test.fr/projects/2");
-});
-
-test("can iterate over hal-array", async (t) => {
-  initTests();
-  let value = await new HalRestClient().fetch("http://test.fr/projects", HalArray);
-
-  let i = 0;
-  for (let item of value) {
-    if (i == 0) {
-      t.equals(item.prop("name"), "Project 1");
-      t.equals(item.uri, "http://test.fr/projects/1");
-    } else if (i == 1) {
-      t.equals(item.prop("name"), "Project 2");
-      t.equals(item.uri, "http://test.fr/projects/2");
-    }
-    i++;
-  }
-
-  t.equals(i, 2, "halArray have two projects");
-});
-*/
 
 test("list item are resources", async (t) => {
   initTests();
@@ -199,7 +168,7 @@ test("resource fetch can be forced", async (t) => {
 
 test("can init Resource by URL", async (t) => {
   initTests();
-  const project = new HalResource(createClient(), "http://test.fr/projects/1");
+  const project = new HalResource(createClient(), new URI("http://test.fr/projects/1"));
   t.equals(project.prop("name"), undefined);
   await project.fetch();
   t.equals(project.prop("name"), "Project 1");
@@ -290,9 +259,9 @@ test("fetch non hal object throw exception", async (t) => {
 test("can read link without href", async (t) => {
   initTests();
   const project = await createClient("http://test.fr").fetchResource("/project/3");
-  t.equals(project.uri, "http://test.fr/projects/3");
-  t.equals(project.prop("subResource").uri, "http://test.fr/projects/3/subResource");
-  t.equals(project.link("versions").uri, "http://test.fr/projects/3/versions");
+  t.equals(project.uri.fill(), "http://test.fr/projects/3");
+  t.equals(project.prop("subResource").uri.fill(), "http://test.fr/projects/3/subResource");
+  t.equals(project.link("versions").uri.fill(), "http://test.fr/projects/3/versions");
 });
 
 test("can construct hal-object with URI", async (t) => {

@@ -19,6 +19,15 @@ Using npm :
 npm install hal-rest-client
 ```
 
+### From O.2
+
+Warning : `uri` property of HalResource are now `URI` type. Si if you use this property you must now use 
+```ts
+halResource.uri.fetchedURI // get the uri used to fetch resource
+halResource.uri.uri // get the uri provided from server
+halResource.uri.fill({params: "test"}) // fill the templated uri with given parameters
+```
+
 ## how to use
 
 The library provide two access method :
@@ -70,6 +79,23 @@ await linkValue.fetch();
 const name = linkValue.prop("name");
 ```
 > link return an empty `HalResource`, just `uri` is setted. `fetch` populate the HalResource.
+
+#### Follow a templated link
+
+If you link is templated, you can set parameter to fetch to compute fetch URL.
+```ts
+// link "link_name" is a templated link like this 
+// /bookings{?projection}
+const linkValue = resource.link("link_name");
+const bookings = await linkValue.fetch(); // fetch /bookings
+const bookingsWithName = await linkValue.fetch({projection : "name"}); // fetch /bookings?projection=name
+// link "link_infos" is like this 
+// /infos{/path*}
+const linkValue = resource.link("link_infos");
+const infos = await linkValue.fetch(); // fetch /infos
+const infosForFoo = await linkValue.fetch({path: "foo"});
+```
+
 
 #### Update a resource
 

@@ -191,7 +191,7 @@ test("can update with custom serializer", async (t) => {
   try {
     const result = await resource.update({
       parseProp : (value) => "serializer." + value,
-      parseResource : (value) => "serializer2." + value.uri,
+      parseResource : (value) => "serializer2." + value.uri.uri,
     });
     t.equals(result.status, 200);
   } catch (e) {

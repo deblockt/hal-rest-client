@@ -1,14 +1,22 @@
 import { HalRestClient } from "./hal-rest-client";
+import { URI } from "./uri";
 
 export interface IHalResourceConstructor<T extends IHalResource> {
-  new (restClient: HalRestClient, uri ?: string): T;
+  new (restClient: HalRestClient, uri ?: URI): T;
 }
 
 export interface IHalResource {
   isLoaded: boolean;
-  uri: string;
+  uri: URI;
 
-  fetch(force: boolean): Promise<this>;
+  /**
+   * fetch the current resource
+   *
+   * @param forceOrParams: if uri is a templated link you can use object to set template parameters
+   *                        in this case fetch is already done
+   *                       if uri is non a template link you can use true to force fetch to be done (refersh resource)
+   */
+  fetch(forceOrParams: boolean|object): Promise<this>;
 
   /**
    * get or set a prop or a link.

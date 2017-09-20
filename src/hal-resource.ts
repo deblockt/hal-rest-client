@@ -1,6 +1,7 @@
 import { DefaultSerializer, IJSONSerializer } from "./hal-json-serializer";
 import { IHalResource, IHalResourceConstructor } from "./hal-resource-interface";
 import { HalRestClient } from "./hal-rest-client";
+import { URI } from "./uri";
 
 export class HalResource implements IHalResource {
     public readonly links = {};
@@ -13,7 +14,7 @@ export class HalResource implements IHalResource {
     private readonly settedLinks = [];
     private initEnded = false;
 
-    constructor(restClient: HalRestClient|HalResource, protected _uri ?: string) {
+    constructor(restClient: HalRestClient|HalResource, protected _uri ?: URI) {
       if (restClient instanceof HalRestClient) {
         this.restClient = restClient;
       } else {
@@ -26,11 +27,15 @@ export class HalResource implements IHalResource {
       }
     }
 
-    public fetch(force: boolean = false): Promise<this> {
-      if ((this.isLoaded && !force) || this.uri === undefined) {
+    public fetch(forceOrParams ?: boolean|object): Promise<this> {
+      if ((this.isLoaded && !forceOrParams) || this.uri === undefined) {
         return new Promise((resolve) => resolve(this));
       } else {
-        return this.restClient.fetch(this.uri, this.constructor as IHalResourceConstructor<this>, this);
+        return this.restClient.fetch(
+          this.uri.fill(forceOrParams as object),
+          this.constructor as IHalResourceConstructor<this>,
+          this,
+        );
       }
     }
 
@@ -57,11 +62,11 @@ export class HalResource implements IHalResource {
       }
     }
 
-    set uri(uri: string) {
+    set uri(uri: URI) {
       this._uri = uri;
     }
 
-    get uri(): string {
+    get uri(): URI {
       return this._uri;
     }
     /**
@@ -101,7 +106,7 @@ export class HalResource implements IHalResource {
      */
     public update(serializer ?: IJSONSerializer): Promise<any> {
       const json = this.serialize(this.settedProps, this.settedLinks, serializer);
-      return this.restClient.update(this.uri, json, false, this.constructor as IHalResourceConstructor<this>);
+      return this.restClient.update(this.uri.fetchedURI, json, false, this.constructor as IHalResourceConstructor<this>);
     }
 
     /**
@@ -109,7 +114,7 @@ export class HalResource implements IHalResource {
      */
     public create(serializer ?: IJSONSerializer): Promise<any> {
       const json = this.serialize(Object.keys(this.props), Object.keys(this.links), serializer);
-      return this.restClient.create(this.uri, json, this.constructor as IHalResourceConstructor<this>);
+      return this.restClient.create(this.uri.fetchedURI, json, this.constructor as IHalResourceConstructor<this>);
     }
 
     /**

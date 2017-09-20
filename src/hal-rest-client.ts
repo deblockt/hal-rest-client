@@ -1,5 +1,5 @@
 import Axios from "axios";
-import { AxiosResponse, AxiosInstance, AxiosRequestConfig, AxiosInterceptorManager } from "axios";
+import { AxiosInstance, AxiosInterceptorManager, AxiosRequestConfig, AxiosResponse } from "axios";
 
 import "reflect-metadata";
 
@@ -84,7 +84,7 @@ export class HalRestClient {
   public fetch<T extends IHalResource>(resourceURI: string, c: IHalResourceConstructor<T>,  resource ?: T): Promise<T> {
     return new Promise((resolve, reject) => {
       this.axios.get(resourceURI).then((value) => {
-        resolve(this.jsonPaser.jsonToResource(value.data, c, resource));
+        resolve(this.jsonPaser.jsonToResource(value.data, c, resource, value.config.url));
       }).catch(reject);
     });
   }
@@ -106,7 +106,7 @@ export class HalRestClient {
       uri = resource;
       type = HalResource;
     } else {
-      uri = resource.uri;
+      uri = resource.uri.fetchedURI;
       type = resource.constructor;
     }
 
@@ -134,7 +134,7 @@ export class HalRestClient {
 
     return new Promise((resolve, reject) => {
       this.axios.request({data, method, url}).then((value) => {
-        this.resolveUnknowTypeReturn(resolve, value, type);
+        this.resolveUnknowTypeReturn(resolve, value, type, url);
       }).catch(reject);
     });
   }
@@ -143,12 +143,13 @@ export class HalRestClient {
    * run post request
    * @param uri {string} resource uri to update
    * @param json {object} request body send
-   * @param type {IHalResourceConstructor} if hal service return entity, type can be used to map return to an entity model
+   * @param type {IHalResourceConstructor} if hal service return entity, type can be used to map return
+   *                                        to an entity model
    */
   public create(uri: string, json: object, type: IHalResourceConstructor<any> = HalResource): Promise<any> {
     return new Promise((resolve, reject) => {
       this.axios.post(uri, json).then((value) => {
-        this.resolveUnknowTypeReturn(resolve, value, type);
+        this.resolveUnknowTypeReturn(resolve, value, type, uri);
       }).catch(reject);
     });
   }
@@ -200,10 +201,11 @@ export class HalRestClient {
     resolve: (data?) => void,
     value: AxiosResponse,
     type ?: IHalResourceConstructor<any>,
+    fetchedURI?: string,
   ) {
     if (value.data) {
-      if ("_links" in value.data) {
-        resolve(this.jsonPaser.jsonToResource(value.data, type));
+      if (typeof value.data === "object" && "_links" in value.data) {
+        resolve(this.jsonPaser.jsonToResource(value.data, type, undefined, fetchedURI));
       } else {
         resolve(value.data);
       }
