@@ -19,7 +19,7 @@ Using npm :
 npm install hal-rest-client
 ```
 
-### From O.2
+### From 0.2
 
 Warning : `uri` property of HalResource are now `URI` type. Si if you use this property you must now use 
 ```ts
@@ -204,6 +204,18 @@ fetch return the fetched object, so you can do that :
 ``` ts
 const resourceOwner = await resource.owner.fetch();
 const ownerName = resourceOwner.name;
+```
+
+you can fetch a templated link like this
+``` ts
+// link "booking" is a templated link like this 
+// /bookings{?projection}
+const bookings = await resource.booking.fetch(); // fetch /bookings
+const bookingsWithName = await resource.booking.fetch({projection : "name"}); // fetch /bookings?projection=name
+// link "infos" is like this 
+// /infos{/path*}
+const infos = await resource.infos.fetch(); // fetch /infos
+const infosForFoo = await resource.infos.fetch({path: "foo"});
 ```
 
 #### update a resource
