@@ -2,6 +2,7 @@ import { AxiosRequestConfig } from "axios";
 import { HalResource } from "./hal-resource";
 import { IHalResource, IHalResourceConstructor} from "./hal-resource-interface";
 import { HalRestClient } from "./hal-rest-client";
+import { URI } from "./uri";
 
 let clients: {[k: string]: HalRestClient} = {};
 let resources: {[k: string]: any} = {};
@@ -29,17 +30,24 @@ export function createClient(basename ?: string, options: AxiosRequestConfig = {
 export function createResource<T extends IHalResource>(
   client: HalRestClient,
   c: IHalResourceConstructor<T>,
-  uri?: string,
+  uri?: string|URI,
 ): T {
     if (!uri) {
         return new c(client);
     }
 
-    if (!(uri in resources)) {
-        resources[uri] = new c(client, uri);
+    if (typeof uri === "object" && uri.templated) {
+        return new c(client, uri);
     }
 
-    const resource = resources[uri];
+    const stringURI = typeof uri === "string" ? uri : uri.uri;
+    const objectURI = typeof uri === "string" ? new URI(uri, false, uri) : uri;
+
+    if (!(stringURI in resources)) {
+        resources[stringURI] = new c(client, objectURI);
+    }
+
+    const resource = resources[stringURI];
     if (resource instanceof c) {
       return resource;
     }

@@ -19,7 +19,8 @@
   },
   "dependencies": {
     "axios": "^0.15.3",
-    "reflect-metadata": "^0.1.9"
+    "reflect-metadata": "^0.1.9",
+    "uri-templates": "^0.1.9"
   },
   "main": "dist/index",
   "typings": "dist/index",

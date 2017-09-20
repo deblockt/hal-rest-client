@@ -2,6 +2,7 @@ import { createResource } from "./hal-factory";
 import { HalResource } from "./hal-resource";
 import { IHalResource, IHalResourceConstructor } from "./hal-resource-interface";
 import { HalRestClient } from "./hal-rest-client";
+import { URI } from "./uri";
 
 export class JSONParser {
 
@@ -14,6 +15,7 @@ export class JSONParser {
     json: any,
     c: IHalResourceConstructor<T>,
     resource?: T,
+    fetchedURI?: string,
   ): T {
     if (!("_links" in json)) {
         throw new Error("object is not hal resource " + JSON.stringify(json));
@@ -35,14 +37,14 @@ export class JSONParser {
         const links = json._links;
         for (const linkKey in json._links) {
           if ("self" !== linkKey) {
-            const href = links[linkKey].href || links[linkKey];
+            const href = this.extractURI(links[linkKey]);
             const type =  Reflect.getMetadata("halClient:specificType", c.prototype, linkKey) || HalResource;
             const propKey = halToTs[linkKey] || linkKey;
             resource.link(propKey, createResource(this.halRestClient, type, href));
           }
         }
         if (links.self) {
-          resource.uri = links.self.href || links.self;
+          resource.uri = this.extractURI(links.self, fetchedURI);
         }
       } else if ("_embedded" === key) {
         const embedded = json._embedded;
@@ -77,6 +79,16 @@ export class JSONParser {
       return this.jsonToResource(json, type);
     } else {
       return json;
+    }
+  }
+
+  private extractURI(link: string|{href ?: string, templated ?: boolean}, fetchedURI?: string): URI {
+    if (typeof link === "string") {
+      return new URI(link, false, fetchedURI);
+    } else {
+      const uri = link.href;
+      const templated = link.templated || false;
+      return new URI(uri, templated, fetchedURI);
     }
   }
 }
