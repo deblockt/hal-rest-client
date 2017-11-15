@@ -35,7 +35,7 @@ export class HalResource implements IHalResource {
           this.uri.fill(forceOrParams as object),
           this.constructor as IHalResourceConstructor<this>,
           this,
-        );
+        ) as Promise<this>;
       }
     }
 
