@@ -40,7 +40,11 @@ export class JSONParser {
             const href = this.extractURI(links[linkKey]);
             const type =  Reflect.getMetadata("halClient:specificType", c.prototype, linkKey) || HalResource;
             const propKey = halToTs[linkKey] || linkKey;
-            resource.link(propKey, createResource(this.halRestClient, type, href));
+            const linkResource = createResource(this.halRestClient, type, href);
+            for (const propInLinkKey of Object.keys(links[linkKey])) {
+              linkResource.prop(propInLinkKey, links[linkKey][propInLinkKey]);
+            }
+            resource.link(propKey, linkResource);
           }
         }
         if (links.self) {
