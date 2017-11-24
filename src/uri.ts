@@ -9,6 +9,17 @@ export class URI {
         }
     }
 
+    public get resourceURI(): string {
+        if (this.templated) {
+            if (this.fetchedURI != "") {
+                return this.fetchedURI
+            }
+            throw new Error("can not call delete on resource with templated link")
+        } else {
+            return this.uri
+        }
+    }
+
     public fill(params: object = {}): string {
         if (this.templated && this.uriTemplates) {
             return this.uriTemplates.fill(params);
