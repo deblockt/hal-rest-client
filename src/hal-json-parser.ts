@@ -38,8 +38,8 @@ export class JSONParser {
         for (const linkKey in json._links) {
           if ("self" !== linkKey) {
             const href = this.extractURI(links[linkKey]);
-            const type =  Reflect.getMetadata("halClient:specificType", c.prototype, linkKey) || HalResource;
             const propKey = halToTs[linkKey] || linkKey;
+            const type =  Reflect.getMetadata("halClient:specificType", c.prototype, propKey) || HalResource;
             const linkResource = createResource(this.halRestClient, type, href);
             for (const propInLinkKey of Object.keys(links[linkKey])) {
               linkResource.prop(propInLinkKey, links[linkKey][propInLinkKey]);
