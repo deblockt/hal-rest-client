@@ -43,7 +43,7 @@ export class HalResource implements IHalResource {
       return this.restClient.fetchArray(
         this.uri.fill(params as object),
         resource ? resource.prototype.constructor : this.constructor as IHalResourceConstructor<this>,
-      );
+      ) as Promise<this[]>;
     }
 
     /**
