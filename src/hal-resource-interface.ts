@@ -19,6 +19,18 @@ export interface IHalResource {
   fetch(forceOrParams: boolean|object): Promise<this>;
 
   /**
+   * fetch an array of the current resource
+   *
+   * Unlike #fetch(boolean|object) this method needs #uri to be set. So it's not possible to fetch a resource in
+   * advance.
+   *
+   * @param {object} params: If the uri is a template link, you can set the parameters.
+   * @param {IHalResourceConstructor<this>} resource: An optional resource to create the array items of.
+   * @returns {Promise<this[]>} Will return an array of resources.
+   */
+  fetchArray(params?: object, resource?: IHalResourceConstructor<this>): Promise<this[]>;
+
+  /**
    * get or set a prop or a link.
    * if name is a link. link function is used
    * @param name : the prop/link name

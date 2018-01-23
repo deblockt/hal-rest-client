@@ -6,6 +6,7 @@ import { test } from "tape-async";
 import { ContactInfos } from "./model/contact-infos";
 import { Cyclical, CyclicalList } from "./model/cyclical";
 import { Person } from "./model/person";
+import {ArrayResource, ArrayResourceItem} from './model/array-resource';
 
 // mock list response
 function initTests() {
@@ -122,6 +123,20 @@ function initTests() {
   testNock
     .get("/cyclicals/refresh")
     .reply(200, cyclicals);
+
+  const arrayResource = {
+    _links: {
+      self: 'http://test.fr/array',
+    },
+    items: [
+      {id: 1, _links: {self: {href: 'http://test.fr/array/1'}}},
+      {id: 2, _links: {self: {href: 'http://test.fr/array/2'}}},
+    ],
+  };
+
+  testNock
+    .get("/arrayResource")
+    .reply(200, arrayResource);
 }
 
 test("can get single string prop", async (t) => {
@@ -266,4 +281,17 @@ test("cyclical property have good class type", async (t) => {
   t.ok(cyclicals.refresh instanceof CyclicalList, "cyclicals.refresh have type CyclicalList");
   t.ok(Array.isArray(cyclicals.cyclicals), "cyclicals is an array");
   t.equals(cyclicals.cyclicals[0].property, "name");
+});
+
+test('fetching resource with array contains valid typed resources', async (t) => {
+  initTests();
+
+  const client = createClient('http://test.fr');
+  const resource: ArrayResource = await client.fetch('/arrayResource', ArrayResource);
+
+  t.ok(resource instanceof ArrayResource, 'Result has the correct type');
+  t.ok(Array.isArray(resource.items), 'Result content is array');
+  t.ok(resource.items.length === 2, 'Correct count of array items');
+  t.ok(resource.items[0] instanceof ArrayResourceItem, 'Array item has correct type');
+  t.ok(resource.items[0].id === 1, 'Correct item returned.');
 });

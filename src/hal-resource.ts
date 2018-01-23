@@ -2,6 +2,7 @@ import { DefaultSerializer, IJSONSerializer } from "./hal-json-serializer";
 import { IHalResource, IHalResourceConstructor } from "./hal-resource-interface";
 import { HalRestClient } from "./hal-rest-client";
 import { URI } from "./uri";
+import * as _ from 'lodash';
 
 export class HalResource implements IHalResource {
     public readonly links = {};
@@ -37,6 +38,13 @@ export class HalResource implements IHalResource {
           this,
         ) as Promise<this>;
       }
+    }
+
+    public fetchArray(params?: object, resource?: IHalResourceConstructor<this>): Promise<this[]> {
+      return this.restClient.fetchArray(
+        this.uri.fill(params as object),
+        resource ? resource.prototype.constructor : this.constructor as IHalResourceConstructor<this>,
+      ) as Promise<this[]>;
     }
 
     /**
@@ -133,11 +141,8 @@ export class HalResource implements IHalResource {
 
       for (const prop of props) {
         const jsonKey = this.tsProptoHalProd(prop) ;
-        if (this.props[prop] !== undefined && this.props[prop] !== null && this.props[prop].onInitEnded !== undefined) {
-          json[jsonKey] = serializer.parseResource(this.props[prop]);
-        } else {
-          json[jsonKey] = serializer.parseProp(this.props[prop]);
-        }
+
+        json[jsonKey] = this.serializeProperty(prop, serializer);
       }
 
       for (const link of links) {
@@ -146,5 +151,24 @@ export class HalResource implements IHalResource {
       }
 
       return json;
+    }
+
+    private serializeProperty(prop, serializer: IJSONSerializer, arrayItem?: any) {
+      let result = null;
+
+      const property = arrayItem || this.props[prop];
+
+      if (!_.isEmpty(property) && _.isFunction(property.onInitEnded)) {
+        result = serializer.parseResource(property)
+      } else if (_.isArray(property)) {
+        result = _(property)
+          .map(item => this.serializeProperty(prop, serializer, item))
+          .toArray()
+          .value()
+      } else {
+        result = serializer.parseProp(property)
+      }
+
+      return result
     }
 }
