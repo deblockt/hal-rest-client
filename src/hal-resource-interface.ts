@@ -31,7 +31,7 @@ export interface IHalResource {
    * @param name : the link name
    * @param value : the new resource. If you want reset a link use null and not undefined
    */
-  link(name: string, value ?: IHalResource): IHalResource;
+  link(name: string, value ?: IHalResource | IHalResource[]): IHalResource;
 
   /**
    * function called when object is populated
