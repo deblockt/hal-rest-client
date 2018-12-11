@@ -82,32 +82,12 @@ const name = link.prop("name");
 
 Note that `link()` returns an empty `HalResource` with its `uri` set. You need to call `fetch()` to populate the HalResource.
 
-
-Bear in mind that links can also be arrays:
+The library also supports arrays of links using Array syntax:
 
 ```ts
 const link = resource.link("link_name")[0];
 await link.fetch();
 const name = link.prop("name");
-```
-
-Finally, realise links are synonymous with props:
-
-```ts
-const link = resource.link("link_name");
-const prop = resource.prop("link_name");
-link === prop // true
-```
-
-This means you can navigate a HAL hierarchy using props alone:
-
-```ts
-// using .prop()
-const foo = await resource.prop("foo").fetch();
-const bar = foo.prop("bar").fetch();
-
-// using .links
-bar.props === resource.links.foo.links.bar.props // true
 ```
 
 #### Follow a templated link
@@ -119,6 +99,8 @@ If you link is templated, you can set parameter to fetch to compute fetch URL.
 const link = resource.link("link_name");
 const bookings = await link.fetch(); // fetch /bookings
 const bookingsWithName = await link.fetch({projection : "name"}); // fetch /bookings?projection=name
+```
+```ts
 // link "link_infos" is like this 
 // /infos{/path*}
 const link = resource.link("link_infos");
@@ -126,6 +108,27 @@ const infos = await link.fetch(); // fetch /infos
 const infosForFoo = await link.fetch({path: "foo"});
 ```
 
+
+#### Links as props
+
+Note that named links are synonymous with props:
+
+```ts
+const link = resource.link("link_name");
+const prop = resource.prop("link_name");
+link === prop // true
+```
+
+This means you can navigate a HAL hierarchy (referencing and fetching) using props alone:
+
+```ts
+// using .prop()
+const foo = await resource.prop("foo").fetch();
+const bar = await foo.prop("bar").fetch();
+
+// using .links
+bar.props === resource.links.foo.links.bar.props // true
+```
 
 #### Update a resource
 
