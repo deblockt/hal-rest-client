@@ -72,7 +72,7 @@ export class HalResource implements IHalResource {
     /**
      * to clear value use null not undefined
      */
-    public link(name: string, value ?: IHalResource): HalResource {
+    public link(name: string, value ?: any): any {
       if (value !== void 0) {
         this.links[name] = value;
         if (this.initEnded) {
