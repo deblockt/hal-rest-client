@@ -32,9 +32,8 @@ export class JSONParser {
     // get translation between hal-service-name and name on ts class
     const halToTs = Reflect.getMetadata("halClient:halToTs", c.prototype) || {};
 
-    const processLink = (link, linkKey) => {
+    const processLink = (link, type) => {
       const href = this.extractURI(link);
-      const type = Reflect.getMetadata("halClient:specificType", c.prototype, linkKey) || HalResource;
       const linkResource = createResource(this.halRestClient, type, href);
       for (const propKey of Object.keys(link)) {
         linkResource.prop(propKey, link[propKey]);
@@ -47,14 +46,13 @@ export class JSONParser {
         const links = json._links;
         for (const linkKey in json._links) {
           if ("self" !== linkKey) {
-            if (json._links.hasOwnProperty(linkKey)) {
-              const propKey = halToTs[linkKey] || linkKey;
-              const link = links[linkKey];
-              const result = Array.isArray(link)
-                ? link.map((item) => processLink(item, linkKey))
-                : processLink(link, linkKey);
-              resource.link(propKey, result);
-            }
+            const type = Reflect.getMetadata("halClient:specificType", c.prototype, linkKey) || HalResource;
+            const propKey = halToTs[linkKey] || linkKey;
+            const link = links[linkKey];
+            const result = Array.isArray(link)
+              ? link.map((item) => processLink(item, type))
+              : processLink(link, type);
+            resource.link(propKey, result);
           }
         }
         if (links.self) {
