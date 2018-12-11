@@ -28,7 +28,7 @@ halResource.uri.uri // get the uri provided from server
 halResource.uri.fill({params: "test"}) // fill the templated uri with given parameters
 ```
 
-## how to use
+## How to use
 
 The library provide two access method :
 1. use generic object `HalResource` to map service return
@@ -48,7 +48,7 @@ const client = createClient();
 const client = createClient("http://exemple.com/api");
 ```
 
-to get a resource, you can use fetchResource method.
+To get a resource, you can use fetchResource method.
 
 ``` ts
 const resource = await client.fetchResource("http://exemple.com/api/resources/5")
@@ -64,21 +64,51 @@ const resourceURI = resource.uri;
 ```
 for a link, on `link` service return
 ```ts
-const linkValue = resource.prop("link_name");
+const link = resource.prop("link_name");
 // or
-const linkValue = resource.link("link_name");
+const link = resource.link("link_name");
 ```
 > link attribute type is `HalResource`
 
 #### Follow a link
 
-links are made to be followed. So you can simply fetch a link using `fetch` method.
+Links are made to be followed. So you can simply fetch a link using `fetch` method.
 ``` ts
-const linkValue = resource.link("link_name");
-await linkValue.fetch();
-const name = linkValue.prop("name");
+
+const link = resource.link("link_name");
+await link.fetch();
+const name = link.prop("name");
 ```
-> link return an empty `HalResource`, just `uri` is setted. `fetch` populate the HalResource.
+
+Note that `link()` returns an empty `HalResource` with its `uri` set. You need to call `fetch()` to populate the HalResource.
+
+
+Bear in mind that links can also be arrays:
+
+```ts
+const link = resource.link("link_name")[0];
+await link.fetch();
+const name = link.prop("name");
+```
+
+Finally, realise links are synonymous with props:
+
+```ts
+const link = resource.link("link_name");
+const prop = resource.prop("link_name");
+link === prop // true
+```
+
+This means you can navigate a HAL hierarchy using props alone:
+
+```ts
+// using .prop()
+const foo = await resource.prop("foo").fetch();
+const bar = foo.prop("bar").fetch();
+
+// using .links
+bar.props === resource.links.foo.links.bar.props // true
+```
 
 #### Follow a templated link
 
@@ -86,14 +116,14 @@ If you link is templated, you can set parameter to fetch to compute fetch URL.
 ```ts
 // link "link_name" is a templated link like this 
 // /bookings{?projection}
-const linkValue = resource.link("link_name");
-const bookings = await linkValue.fetch(); // fetch /bookings
-const bookingsWithName = await linkValue.fetch({projection : "name"}); // fetch /bookings?projection=name
+const link = resource.link("link_name");
+const bookings = await link.fetch(); // fetch /bookings
+const bookingsWithName = await link.fetch({projection : "name"}); // fetch /bookings?projection=name
 // link "link_infos" is like this 
 // /infos{/path*}
-const linkValue = resource.link("link_infos");
-const infos = await linkValue.fetch(); // fetch /infos
-const infosForFoo = await linkValue.fetch({path: "foo"});
+const link = resource.link("link_infos");
+const infos = await link.fetch(); // fetch /infos
+const infosForFoo = await link.fetch({path: "foo"});
 ```
 
 
@@ -182,7 +212,7 @@ const resource = await client.fetch("/resource/5", Resource);
 ```
 > fetch return a promise. you can use `then` and `catch` to get result. Otherwise you can use `await` see [this article](https://blog.mariusschulz.com/2016/12/09/typescript-2-1-async-await-for-es3-es5)
 
-read props is simply call object attributs.
+Read props is simply call object attributes.
 
 ``` ts
 const name = resource.name;
