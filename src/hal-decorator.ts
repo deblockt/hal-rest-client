@@ -16,21 +16,21 @@ function getTransco(transconame: string, target: any): object {
 }
 
 export function HalProperty<T extends HalResource>(nameOrType ?: string|Function, maybeType ?: Function) {
-  let type;
+  let propType;
   let propName;
   let error = false;
   if (nameOrType) {
     if (typeof nameOrType === "string") {
       propName = nameOrType;
     } else {
-      type = nameOrType;
+      propType = nameOrType;
     }
 
     if (maybeType) {
       if (typeof nameOrType === "function") {
         error = true;
       } else {
-        type = maybeType;
+        propType = maybeType;
       }
     }
   }
@@ -39,8 +39,8 @@ export function HalProperty<T extends HalResource>(nameOrType ?: string|Function
     if (error) {
         throw new Error(`${target.constructor.name}.${key} @HalProperty parameters are 'name' and 'type', not reverse`);
     }
-    const propertyType = Reflect.getMetadata("design:type", target, key);
-    if (propertyType === Array && type === undefined) {
+    const baseType = Reflect.getMetadata("design:type", target, key);
+    if (baseType === Array && propType === undefined) {
       throw new Error(`${target.constructor.name}.${key} for Array you need to specify a type on @HalProperty.` +
                        "Example : @HalProperty(HalResource) or  @HalProperty(ClassOfArrayContent)");
     }
@@ -50,8 +50,11 @@ export function HalProperty<T extends HalResource>(nameOrType ?: string|Function
     halToTs[propName || key] = key;
     tsToHal[key] = propName || key;
 
-    const toUseType = type || propertyType;
-    Reflect.defineMetadata("halClient:specificType", toUseType, target, key);
+    const type = propType || baseType;
+    Reflect.defineMetadata("halClient:specificType", type, target, key);
+    if (propName && propType) {
+      Reflect.defineMetadata("halClient:specificType", type, target, propName);
+    }
 
     // Delete property.
     if (delete target[key]) {
