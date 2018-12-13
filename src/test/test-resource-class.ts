@@ -5,6 +5,7 @@ import { test } from "tape-async";
 
 import { ContactInfos } from "./model/contact-infos";
 import { Cyclical, CyclicalList } from "./model/cyclical";
+import { Location } from "./model/location";
 import { Person } from "./model/person";
 
 // mock list response
@@ -49,6 +50,12 @@ function initTests() {
       contactInfos : {
         href : "http://test.fr/person/2/contactInfos",
       },
+      "home" : {
+        href : "http://test.fr/person/1/location/home",
+      },
+      "place-of-employment" : {
+        href : "http://test.fr/person/1/location/work",
+      },
       self : {
         href : "http://test.fr/person/1",
       },
@@ -65,6 +72,24 @@ function initTests() {
     phone : "xxxxxxxxxx",
   };
 
+  const home = {
+    _links : {
+      self : {
+        href : "http://test.fr/person/1/location/home",
+      },
+    },
+    address : "country",
+  };
+
+  const work = {
+    _links : {
+      self : {
+        href : "http://test.fr/person/1/location/work",
+      },
+    },
+    address : "city",
+  };
+
   const testNock = nock("http://test.fr/");
 
   testNock
@@ -77,6 +102,12 @@ function initTests() {
   testNock
     .get("/person/2/contactInfos")
     .reply(200, contactInfos);
+  testNock
+    .get("/person/1/location/home")
+    .reply(200, home);
+  testNock
+    .get("/person/1/location/work")
+    .reply(200, work);
   testNock
     .get("/persons")
     .reply(200, {
@@ -128,23 +159,39 @@ test("can get single string prop", async (t) => {
   initTests();
   const client = createClient("http://test.fr/");
   const person = await client.fetch("/person/1", Person);
+
+  // person
   t.equals(person.name, "Project 1");
   t.ok(person.bestFriend instanceof Person, "bestfriend is a person");
   t.ok(person.mother instanceof Person, "mother is a person");
   t.ok(person.father instanceof Person, "father is a person");
   t.equals(person.bestFriend.name, "My bestfriend");
-  t.equals(person.contactInfos.phone, undefined);
-  const contactInfos = await person.contactInfos.fetch();
-  t.equals(person.contactInfos.phone, "xxxxxxxxxx");
+  person.name = "Toto";
+  t.equals(person.name, "Toto");
+
+  // friends
   t.equals(person.myFriends.length, 1);
-  t.ok(contactInfos instanceof ContactInfos);
-  t.equals(contactInfos.phone, "xxxxxxxxxx");
   for (const friend of person.myFriends) {
     t.equals(friend.name, "Thomas");
   }
 
-  person.name = "Toto";
-  t.equals(person.name, "Toto");
+  // contacts
+  t.equals(person.contactInfos.phone, undefined);
+  const contactInfos = await person.contactInfos.fetch();
+  t.equals(person.contactInfos.phone, "xxxxxxxxxx");
+  t.ok(contactInfos instanceof ContactInfos);
+  t.equals(contactInfos.phone, "xxxxxxxxxx");
+
+  // home
+  t.equals(person.home.address, undefined);
+  const home = await person.home.fetch();
+  t.equals(person.home.address, "country");
+
+  // work
+  t.equals(person.work.address, undefined);
+  const work = await person.work.fetch();
+  t.equals(person.work.address, "city");
+
 });
 
 test("can fetch Array of Person", async (t) => {
