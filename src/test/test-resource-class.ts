@@ -3,7 +3,7 @@ import { createClient, createResource, HalProperty, HalResource, resetCache } fr
 import * as nock from "nock";
 import { test } from "tape-async";
 
-import { ContactInfos } from "./model/contact-infos";
+import { Contacts } from "./model/contacts";
 import { Cyclical, CyclicalList } from "./model/cyclical";
 import { Location } from "./model/location";
 import { Person } from "./model/person";
@@ -47,8 +47,8 @@ function initTests() {
         ],
     },
     _links : {
-      contactInfos : {
-        href : "http://test.fr/person/2/contactInfos",
+      contacts : {
+        href : "http://test.fr/person/2/contacts",
       },
       "home" : {
         href : "http://test.fr/person/1/location/home",
@@ -63,10 +63,10 @@ function initTests() {
     name : "Project 1",
   };
 
-  const contactInfos = {
+  const contacts = {
     _links : {
       self : {
-        href : "http://test.fr/person/2/contactInfos",
+        href : "http://test.fr/person/2/contacts",
       },
     },
     phone : "xxxxxxxxxx",
@@ -100,8 +100,8 @@ function initTests() {
       .reply(200, person1);
 
   testNock
-    .get("/person/2/contactInfos")
-    .reply(200, contactInfos);
+    .get("/person/2/contacts")
+    .reply(200, contacts);
   testNock
     .get("/person/1/location/home")
     .reply(200, home);
@@ -176,11 +176,11 @@ test("can get single string prop", async (t) => {
   }
 
   // contacts
-  t.equals(person.contactInfos.phone, undefined);
-  const contactInfos = await person.contactInfos.fetch();
-  t.equals(person.contactInfos.phone, "xxxxxxxxxx");
-  t.ok(contactInfos instanceof ContactInfos);
-  t.equals(contactInfos.phone, "xxxxxxxxxx");
+  t.equals(person.contacts.phone, undefined);
+  const contacts = await person.contacts.fetch();
+  t.equals(person.contacts.phone, "xxxxxxxxxx");
+  t.ok(contacts instanceof Contacts);
+  t.equals(contacts.phone, "xxxxxxxxxx");
 
   // home
   t.equals(person.home.address, undefined);
@@ -218,7 +218,7 @@ test("fetch bad hal resource throw exception", async (t) => {
   initTests();
   const client = createClient("http://test.fr/");
   try {
-    await client.fetchArray("/person/2/contactInfos", ContactInfos);
+    await client.fetchArray("/person/2/contacts", Contacts);
     t.ko("no error throwed");
   } catch (e) {
     t.equals(e.message, "unparsable array. it's neither an array nor an halResource");
@@ -290,9 +290,9 @@ test("can set object property", async (t) => {
   t.equals(person.name, "Project 1");
   person.name = "test";
   t.equals(person.name, "test");
-  const contactInfos = createResource(client, ContactInfos, "/contacInfos/3");
-  person.contactInfos = contactInfos;
-  t.equals(person.contactInfos, contactInfos);
+  const contacts = createResource(client, Contacts, "/contacInfos/3");
+  person.contacts = contacts;
+  t.equals(person.contacts, contacts);
 });
 
 test("cyclical property have good class type", async (t) => {

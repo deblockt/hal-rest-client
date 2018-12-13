@@ -1,6 +1,6 @@
 import { HalProperty, HalResource } from "../../";
 
-export class ContactInfos extends HalResource {
+export class Contacts extends HalResource {
   @HalProperty()
   public phone: string;
 }
