@@ -3,7 +3,7 @@ import { createClient, createResource, HalProperty, HalResource, resetCache } fr
 import * as nock from "nock";
 import { test } from "tape-async";
 
-import { ContactInfos } from "./model/contact-infos";
+import { Contacts } from "./model/contacts";
 
 // mock list response
 function initTests() {
@@ -21,11 +21,11 @@ function initTests() {
     .reply(200, {success : "ok"});
 
   testNock
-    .delete("/person/2/contactInfos")
+    .delete("/person/2/contacts")
     .reply(200, {
       _links : {
         self : {
-          href : "http://test.fr/person/2/contactInfos",
+          href : "http://test.fr/person/2/contacts",
         },
       },
       phone : "xxxxxxxxxx",
@@ -63,21 +63,21 @@ test("delete read halResource json response", async (t) => {
   initTests();
   const client = createClient();
 
-  const resource = createResource(client, HalResource, "http://test.fr/person/2/contactInfos");
+  const resource = createResource(client, HalResource, "http://test.fr/person/2/contacts");
   const result = await client.delete(resource);
 
   t.equals(result.prop("phone"), "xxxxxxxxxx");
-  t.equals(result.uri.uri, "http://test.fr/person/2/contactInfos");
+  t.equals(result.uri.uri, "http://test.fr/person/2/contacts");
 });
 
 test("delete read model class json response", async (t) => {
   initTests();
   const client = createClient();
-  
-  const resource = createResource(client, ContactInfos, "http://test.fr/person/2/contactInfos");
+
+  const resource = createResource(client, Contacts, "http://test.fr/person/2/contacts");
   const result = await resource.delete();
 
-  t.ok(result instanceof ContactInfos, "result is a ContactInfos");
+  t.ok(result instanceof Contacts, "result is a contacts");
   t.equals(result.phone, "xxxxxxxxxx");
-  t.equals(result.uri.uri, "http://test.fr/person/2/contactInfos");
+  t.equals(result.uri.uri, "http://test.fr/person/2/contacts");
 });
