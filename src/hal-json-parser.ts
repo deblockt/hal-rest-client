@@ -27,6 +27,7 @@ export class JSONParser {
         uri = "string" === typeof json._links.self ? json._links.self : json._links.self.href;
       }
       resource = createResource(this.halRestClient, c, uri);
+      resource.reset();
     }
 
     // get translation between hal-service-name and name on ts class
