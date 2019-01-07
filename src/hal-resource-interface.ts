@@ -19,6 +19,13 @@ export interface IHalResource {
   fetch(forceOrParams: boolean|object): Promise<this>;
 
   /**
+   * reset the object
+   * must clean all props and all links for this object
+   * this is used when the cached object will be refreshed
+   */
+  reset();
+
+  /**
    * get or set a prop or a link.
    * if name is a link. link function is used
    * @param name : the prop/link name

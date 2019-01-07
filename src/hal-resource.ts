@@ -117,6 +117,16 @@ export class HalResource implements IHalResource {
       return this.restClient.create(this.uri.fetchedURI, json, this.constructor as IHalResourceConstructor<this>);
     }
 
+    public reset() {
+      Object.keys(this.props).forEach((prop) => {
+        delete this.props[prop];
+      });
+
+      Object.keys(this.links).forEach((prop) => {
+        delete this.props[prop];
+      });
+    }
+
     /**
      * get the service prop name corresponding to ts attribute name
      */
