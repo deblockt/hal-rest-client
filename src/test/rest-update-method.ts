@@ -3,7 +3,7 @@ import { createClient, createResource, HalProperty, HalResource, resetCache } fr
 import * as nock from "nock";
 import { test } from "tape-async";
 
-import { ContactInfos } from "./model/contact-infos";
+import { Contacts } from "./model/contacts";
 
 let testNock;
 const basePath = "http://test.fr/";
@@ -33,8 +33,8 @@ function initTests() {
         },
     },
     _links : {
-      contactInfos : {
-        href : "http://test.fr/person/2/contactInfos",
+      contacts : {
+        href : "http://test.fr/person/2/contacts",
       },
       project: {
         href: "http://test.fr/project/4",
@@ -55,10 +55,10 @@ function initTests() {
     name : "Project 5",
   };
 
-  const contactInfos = {
+  const contacts = {
     _links : {
       self : {
-        href : "http://test.fr/person/2/contactInfos",
+        href : "http://test.fr/person/2/contacts",
       },
     },
     phone : "xxxxxxxxxx",
@@ -75,8 +75,8 @@ function initTests() {
     .reply(200, newBestFriend);
 
   testNock
-    .get("/person/2/contactInfos")
-    .reply(200, contactInfos);
+    .get("/person/2/contacts")
+    .reply(200, contacts);
 
   testNock
     .get("/project/5")
@@ -111,18 +111,18 @@ test("can update link using HalResource", async (t) => {
 
   const resource = await client.fetchResource("http://test.fr/person/1");
   resource.prop("name", "test");
-  await resource.prop("contactInfos").fetch();
-  resource.prop("contactInfos").prop("phone", "06XX1245XX");
+  await resource.prop("contacts").fetch();
+  resource.prop("contacts").prop("phone", "06XX1245XX");
 
   const scope = nock(basePath)
     .intercept("/person/1", "PATCH", {name: "test"})
     .reply(200);
   scope
-    .intercept("/person/2/contactInfos", "PATCH", {phone: "06XX1245XX"})
+    .intercept("/person/2/contacts", "PATCH", {phone: "06XX1245XX"})
     .reply(200);
 
   try {
-    const [result, result2] = await Promise.all([resource.update(), resource.prop("contactInfos").update()]);
+    const [result, result2] = await Promise.all([resource.update(), resource.prop("contacts").update()]);
     t.equals(result.status, 200);
     t.equals(result2.status, 200);
   } catch (e) {

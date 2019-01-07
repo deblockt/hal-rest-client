@@ -3,8 +3,9 @@ import { createClient, createResource, HalProperty, HalResource, resetCache } fr
 import * as nock from "nock";
 import { test } from "tape-async";
 
-import { ContactInfos } from "./model/contact-infos";
+import { Contacts } from "./model/contacts";
 import { Cyclical, CyclicalList } from "./model/cyclical";
+import { Location } from "./model/location";
 import { Person } from "./model/person";
 
 // mock list response
@@ -46,8 +47,14 @@ function initTests() {
         ],
     },
     _links : {
-      contactInfos : {
-        href : "http://test.fr/person/2/contactInfos",
+      contacts : {
+        href : "http://test.fr/person/2/contacts",
+      },
+      "home" : {
+        href : "http://test.fr/person/1/location/home",
+      },
+      "place-of-employment" : {
+        href : "http://test.fr/person/1/location/work",
       },
       self : {
         href : "http://test.fr/person/1",
@@ -56,13 +63,31 @@ function initTests() {
     name : "Project 1",
   };
 
-  const contactInfos = {
+  const contacts = {
     _links : {
       self : {
-        href : "http://test.fr/person/2/contactInfos",
+        href : "http://test.fr/person/2/contacts",
       },
     },
     phone : "xxxxxxxxxx",
+  };
+
+  const home = {
+    _links : {
+      self : {
+        href : "http://test.fr/person/1/location/home",
+      },
+    },
+    address : "country",
+  };
+
+  const work = {
+    _links : {
+      self : {
+        href : "http://test.fr/person/1/location/work",
+      },
+    },
+    address : "city",
   };
 
   const testNock = nock("http://test.fr/");
@@ -75,8 +100,14 @@ function initTests() {
       .reply(200, person1);
 
   testNock
-    .get("/person/2/contactInfos")
-    .reply(200, contactInfos);
+    .get("/person/2/contacts")
+    .reply(200, contacts);
+  testNock
+    .get("/person/1/location/home")
+    .reply(200, home);
+  testNock
+    .get("/person/1/location/work")
+    .reply(200, work);
   testNock
     .get("/persons")
     .reply(200, {
@@ -128,23 +159,39 @@ test("can get single string prop", async (t) => {
   initTests();
   const client = createClient("http://test.fr/");
   const person = await client.fetch("/person/1", Person);
+
+  // person
   t.equals(person.name, "Project 1");
   t.ok(person.bestFriend instanceof Person, "bestfriend is a person");
   t.ok(person.mother instanceof Person, "mother is a person");
   t.ok(person.father instanceof Person, "father is a person");
   t.equals(person.bestFriend.name, "My bestfriend");
-  t.equals(person.contactInfos.phone, undefined);
-  const contactInfos = await person.contactInfos.fetch();
-  t.equals(person.contactInfos.phone, "xxxxxxxxxx");
+  person.name = "Toto";
+  t.equals(person.name, "Toto");
+
+  // friends
   t.equals(person.myFriends.length, 1);
-  t.ok(contactInfos instanceof ContactInfos);
-  t.equals(contactInfos.phone, "xxxxxxxxxx");
   for (const friend of person.myFriends) {
     t.equals(friend.name, "Thomas");
   }
 
-  person.name = "Toto";
-  t.equals(person.name, "Toto");
+  // contacts
+  t.equals(person.contacts.phone, undefined);
+  const contacts = await person.contacts.fetch();
+  t.equals(person.contacts.phone, "xxxxxxxxxx");
+  t.ok(contacts instanceof Contacts);
+  t.equals(contacts.phone, "xxxxxxxxxx");
+
+  // home
+  t.equals(person.home.address, undefined);
+  const home = await person.home.fetch();
+  t.equals(person.home.address, "country");
+
+  // work
+  t.equals(person.work.address, undefined);
+  const work = await person.work.fetch();
+  t.equals(person.work.address, "city");
+
 });
 
 test("can fetch Array of Person", async (t) => {
@@ -171,7 +218,7 @@ test("fetch bad hal resource throw exception", async (t) => {
   initTests();
   const client = createClient("http://test.fr/");
   try {
-    await client.fetchArray("/person/2/contactInfos", ContactInfos);
+    await client.fetchArray("/person/2/contacts", Contacts);
     t.ko("no error throwed");
   } catch (e) {
     t.equals(e.message, "unparsable array. it's neither an array nor an halResource");
@@ -243,9 +290,9 @@ test("can set object property", async (t) => {
   t.equals(person.name, "Project 1");
   person.name = "test";
   t.equals(person.name, "test");
-  const contactInfos = createResource(client, ContactInfos, "/contacInfos/3");
-  person.contactInfos = contactInfos;
-  t.equals(person.contactInfos, contactInfos);
+  const contacts = createResource(client, Contacts, "/contacInfos/3");
+  person.contacts = contacts;
+  t.equals(person.contacts, contacts);
 });
 
 test("cyclical property have good class type", async (t) => {

@@ -3,7 +3,7 @@ import { createClient, createResource, HalProperty, HalResource, resetCache } fr
 import * as nock from "nock";
 import { test } from "tape-async";
 
-import { ContactInfos } from "./model/contact-infos";
+import { Contacts } from "./model/contacts";
 
 let testNock;
 const basePath = "http://test.fr/";
@@ -33,8 +33,8 @@ function initTests() {
         },
     },
     _links : {
-      contactInfos : {
-        href : "http://test.fr/person/2/contactInfos",
+      contacts : {
+        href : "http://test.fr/person/2/contacts",
       },
       project: {
         href: "http://test.fr/project/4",
@@ -55,10 +55,10 @@ function initTests() {
     name : "Project 5",
   };
 
-  const contactInfos = {
+  const contacts = {
     _links : {
       self : {
-        href : "http://test.fr/person/2/contactInfos",
+        href : "http://test.fr/person/2/contacts",
       },
     },
     phone : "xxxxxxxxxx",
@@ -75,8 +75,8 @@ function initTests() {
     .reply(200, newBestFriend);
 
   testNock
-    .get("/person/2/contactInfos")
-    .reply(200, contactInfos);
+    .get("/person/2/contacts")
+    .reply(200, contacts);
 
   testNock
     .get("/project/5")
