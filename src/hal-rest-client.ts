@@ -26,8 +26,8 @@ import { IHalResource, IHalResourceConstructor} from "./hal-resource-interface";
  * ```
  */
 export class HalRestClient {
-  private axios: AxiosInstance;
-  private jsonPaser;
+  protected axios: AxiosInstance;
+  protected jsonPaser;
 
   constructor(private baseURL ?: string, options: AxiosRequestConfig = {}) {
     const config = options;
