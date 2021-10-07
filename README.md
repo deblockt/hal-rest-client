@@ -7,6 +7,8 @@
 [![NPM](https://nodei.co/npm/hal-rest-client.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/hal-rest-client/)
 
 
+> :warning: This project is archived. I have no time to maintain it. I someone wants to take it back, he can contact me.  
+
 hal-rest-client library to help you work with Hypertext Application Language (HAL) on Typescript. It's work fine with browser or nodejs app.
 
 It can map rest service return to Typescript object for simply access link or property.
